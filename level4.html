@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flappy Forest Flight BY DWHL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            touch-action: manipulation;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to bottom, #003300, #001a00);
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+        }
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 1000px;
+            height: 400px;
+            box-shadow: 0 8px 30px rgba(0, 50, 0, 0.8);
+            overflow: hidden;
+            background: #333;
+            border: 8px solid #5D4037;
+            border-radius: 15px;
+            z-index: 10;
+        }
+        #game-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        #score-display {
+            position: absolute;
+            top: 54px;
+            left: 70%;
+            transform: translateX(-50%);
+            font-size: 39px;
+            font-weight: bold;
+            color:red;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 25px;
+            border-radius: 35px;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.7);
+            z-index: 20;
+            opacity: 0;
+            transition: all 0.3s hard;
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+       #score-display {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 36px;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(145deg, rgba(0, 0, 0, 0.6), rgba(20, 20, 20, 0.8));
+  padding: 12px 28px;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5),
+              inset 0 0 10px rgba(255, 255, 255, 0.15);
+  text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+  transform: scale(0.95);
+  z-index: 1000;
+}
+
+#score-display.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+
+        #score-display.scored {
+            transform: translateX(-50%) scale(1.1);
+            background: rgba(255, 215, 0, 0.3);
+        }
+        #score-display.power-up {
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+        }
+
+        #controls-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 15px;
+            user-select: none;
+            width: 100%;
+            max-width: 300px;
+            position: relative;
+            z-index: 10;
+        }
+        .d-pad-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 5px;
+        }
+        .control-button {
+            width: 70px;
+            height: 70px;
+            margin: 5px;
+            font-size: 30px;
+            font-weight: bold;
+            color: #333;
+            border: 3px solid #4CAF50;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(145deg, #a5d6a7, #81c784);
+            box-shadow: 0 5px #388E3C;
+            transition: all 0.1s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .control-button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(45deg);
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+        .control-button:hover::after {
+            opacity: 1;
+            animation: shine 1.5s infinite;
+        }
+        .control-button:active {
+            background: linear-gradient(145deg, #66bb6a, #4caf50);
+            transform: translateY(3px);
+            box-shadow: 0 2px #2e7d32;
+        }
+        @keyframes shine {
+            0% { transform: rotate(45deg) translate(-30%, -30%); }
+            100% { transform: rotate(45deg) translate(30%, 30%); }
+        }
+
+        #start-button-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        #start-button {
+            padding: 10px 30px;
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(180deg, #FF9800, #F57C00);
+            border: 3px solid #E65100;
+            box-shadow: 0 6px #BF360C;
+            border-radius: 15px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        #start-button::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: linear-gradient(45deg, rgba(255,255,255,0.3), rgba(255,255,255,0));
+            transform: translateX(-100%) rotate(45deg);
+            transition: all 0.3s ease;
+        }
+        #start-button:hover::before {
+            transform: translateX(100%) rotate(45deg);
+        }
+        #start-button:active {
+            background: linear-gradient(180deg, #F57C00, #EF6C00);
+            box-shadow: 0 3px #BF360C;
+            transform: translateY(3px);
+        }
+
+        #power-up-meter {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 150px;
+            height: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 20;
+            display: none;
+        }
+        #power-up-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right  outside canvas, #4CAF50, #8BC34A, #CDDC39, #FFEB3B, #FFC107, #FF9800);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        #game-over-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 30;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        #game-over-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        #game-over-text {
+            color: red;
+            font-size: 55px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255,0,0,0.7);
+            transform: scale(0.8);
+            transition: transform 0.5s ease;
+        }
+        #game-over-overlay.show #game-over-
+        buddy-text {
+            transform: scale(1);
+        }
+        #final-score {
+  color: #fff;
+  font-size: 60px;
+  font-weight: bold;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+  background: linear-gradient(90deg, #f39c12, #e74c3c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 30px;
+  text-align: center;
+  animation: pulse 2s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.9; }
+  100% { transform: scale(1); opacity: 1; }
+}
+#high-score {
+  font-size: 30px;
+  font-weight: bold;
+  color: #FFD700;
+  margin-bottom: 30px;
+  text-align: center;
+  text-shadow:
+    0 0 5px rgba(255, 215, 0, 0.7),
+    0 0 10px rgba(255, 215, 0, 0.6),
+    0 0 20px rgba(255, 215, 0, 0.5);
+  background: linear-gradient(90deg, #fff8dc, #ffd700, #ffa500);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: glow 2.0s infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    text-shadow:
+      0 0 5px rgba(255, 215, 0, 0.7),
+      0 0 10px rgba(255, 215, 0, 0.6),
+      0 0 15px rgba(255, 215, 0, 0.5);
+  }
+  to {
+    text-shadow:
+      0 0 10px rgba(255, 255, 150, 1),
+      0 0 20px rgba(255, 255, 200, 1),
+      0 0 30px rgba(255, 255, 255, 1);
+  }
+}
+
+
+        .leaf-particle {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        #loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #003300;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            color: white;
+        }
+        #loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid rgba(255,255,255,0.3);
+            border-radius: 60%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-screen">
+        <div id="loading-spinner"></div>
+        <h2>Loading Forest Adventure...</h2>
+    </div>
+
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        <div id="score-display">0</div>
+        <div id="power-up-meter">
+            <div id="power-up-fill"></div>
+        </div>
+        <div id="game-over-overlay">
+            <div id="game-over-text">GAME OVER</div>
+            <div id="final-score">Score: 0</div>
+            <div id="high-score">High Score: 0</div>
+            <button id="restart-button" class="px-8 py-3 bg-orange-500 text-white font-bold rounded-lg shadow-lg hover:bg-orange-600 active:bg-orange-700 transition-all">
+                <i class="fas fa-redo mr-2"></i>Play Again
+            </button>
+        </div>
+    </div>
+
+    <div id="controls-container">
+        <div class="d-pad-row">
+            <button id="up-button" class="control-button"><i class="fas fa-arrow-up"></i></button>
+        </div>
+        <div class="d-pad-row">
+            <button id="left-button" class="control-button"><i class="fas fa-arrow-left"></i></button>
+            <div style="width: 70px; height: 70px; margin: 5px;"></div>
+            <button id="right-button" class="control-button"><i class="fas fa-arrow-right"></i></button>
+        </div>
+        <div class="d-pad-row">
+            <button id="down-button" class="control-button"><i class="fas fa-arrow-down"></i></button>
+        </div>
+    </div>
+    <div id="start-button-container">
+        <button id="start-button"><i class="fas fa-play mr-2"></i>START</button>
+    </div>
+
+    <script>
+        // --- ASSETS ---
+        const ASSETS = {
+            bird: 'https://iili.io/3gpkl2f.png',
+            background: 'https://iili.io/3gysNAF.png',
+            tree_var1: 'https://iili.io/3gysvoJ.png',
+            tree_var2: 'https://iili.io/3gyLKVj.png',
+            tree_var3: 'https://iili.io/3gysgFp.png',  
+            tree_var4: 'https://iili.io/3rvqQ3l.png',
+            tree_var5: 'https://iili.io/3rvqiGf.png',
+            tree_var6: 'https://iili.io/3rvqs44.png',
+            tree_var7: 'https://iili.io/3rvbzhB.png',
+            collectible_feather: 'https://iili.io/3reQXJ2.png',
+            collectible_feather1: 'https://iili.io/3rSzbwl.png',
+            collectible_feather2: 'https://iili.io/3rSzQ8G.png',
+            collectible_feather3: 'https://iili.io/3rSzt9f.png',
+            collectible_feather4: 'https://iili.io/3reQXJ2.png',
+            leaf1: 'https://iili.io/3rkaFRa.png',
+            leaf2: 'https://iili.io/3rkazlt.png',
+            leaf3: 'https://iili.io/3rkaniN.png',
+            soundMove: 'https://assets.mixkit.co/sfx/preview/mixkit-quick-jump-arcade-game-239.mp3',
+            soundScore: 'https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3',
+            soundHit: 'https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-explosion-2759.mp3',
+            soundPowerUp: 'https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3',
+            soundCollect: 'https://assets.mixkit.co/sfx/preview/mixkit-coin-win-notification-919.mp3',
+            soundMusic: 'https://assets.mixkit.co/music/preview/mixkit-game-show-suspense-waiting-668.mp3'
+        };
+        const TREE_ASSET_KEYS = ['tree_var1', 'tree_var2', 'tree_var3', 'tree_var4', 'tree_var5', 'tree_var6', 'tree_var7'];
+        const LEAF_ASSETS = ['leaf1', 'leaf2', 'leaf3'];
+
+        // --- GAME SETUP ---
+        const gameContainer = document.getElementById('game-container');
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplayElement = document.getElementById('score-display');
+        const powerUpMeter = document.getElementById('power-up-meter');
+        const powerUpFill = document.getElementById('power-up-fill');
+        const upButton = document.getElementById('up-button');
+        const downButton = document.getElementById('down-button');
+        const leftButton = document.getElementById('left-button');
+        const rightButton = document.getElementById('right-button');
+        const startButton = document.getElementById('start-button');
+        const gameOverOverlay = document.getElementById('game-over-overlay');
+        const gameOverText = document.getElementById('game-over-text');
+        const finalScoreElement = document.getElementById('final-score');
+        const highScoreElement = document.getElementById('high-score');
+        const restartButton = document.getElementById('restart-button');
+        const loadingScreen = document.getElementById('loading-screen');
+
+        // --- GAME VARIABLES ---
+        let bird = {
+            x: 150, y: 350,
+            velocityX: 0, velocityY: 0,
+            width: 50, height: 42,
+            rotation: 0, flapPhase: 0,
+            isBlinking: false, blinkTimer: 0,
+            idleSwayPhase: 0, idleSwayDirection: 1,
+            isPowerUpActive: false,
+            powerUpTimer: 0,
+            trail: [],
+            invincible: false
+        };
+
+        // --- GAME STATE & GLOBAL VARIABLES ---
+let trees = [];                // Array to hold tree obstacle objects
+let collectibles = [];         // Array for collectible items (e.g., eggs, bees)
+let particles = [];            // Array for visual effect particles (like bird trail)
+let leaves = [];               // Array for falling leaves or decor
+
+let score = 0;                 // Current player score
+let highScore = 0;             // Saved highest score
+let obstaclesPassedForPowerUp = 0; // Counter for power-up trigger
+
+let gameState = 'loading';     // Possible states: loading, playing, paused, gameover
+
+let assets = {                 // Containers for preloaded assets
+  images: {},
+  sounds: {}
+};
+
+let assetsToLoad = 0;          // Total assets to load (used in loading progress)
+let assetsLoadedCount = 0;     // Number of assets loaded so far
+
+let lastFrameTime = 0;         // Timestamp for tracking frame delta time (for animations)
+let backgroundX = 0;           // Background horizontal scroll position
+let leafSpawnTimer = 0;        // Timer tracking when to spawn next leaf
+
+let powerUpActive = false;  // Track if power-up is active
+let shieldActive = false;   // Track shield status
+let comboCount = 0;         // Track combo streak for scoring bonuses
+
+
+        // --- GAME PARAMETERS ---
+
+// --- Bird Physics ---
+const BIRD_NUDGE_FORCE = 1.8;              // Force applied when player taps
+const BIRD_MAX_VELOCITY = 3.5;             // Max vertical speed
+const BIRD_BASE_FORWARD_VELOCITY = 1.0;    // Constant horizontal movement
+const FRICTION = 0.90;                     // Friction applied to velocity
+const IDLE_SWAY_SPEED = 0.02;              // Idle animation sway speed
+const IDLE_SWAY_AMOUNT = 0.05;             // Idle sway range
+
+// --- Obstacles (Trees) ---
+const TREE_OBSTACLE_WIDTH = 65;            // Width of tree obstacles
+const VERTICAL_GAP_MIN = 150;              // Minimum vertical gap between top/bottom
+const VERTICAL_GAP_MAX = 190;              // Maximum vertical gap
+const OBSTACLE_SCROLL_SPEED = 1.8;         // Speed at which obstacles move left
+const OBSTACLE_SPAWN_INTERVAL = 2.5;       // Seconds between obstacle spawns
+let timeSinceLastObstacle = OBSTACLE_SPAWN_INTERVAL;
+
+// --- Power-Ups ---
+const POWERUP_THRESHOLD = 10;              // Obstacles passed before power-up appears
+const POWERUP_DURATION = 5000;             // Power-up active duration in ms
+const POWERUP_SPEED_MULTIPLIER = 1.5;      // Speed boost during power-up
+
+// --- Visual Effects ---
+const BIRD_TRAIL_LENGTH = 15;              // Number of trail particles
+const LEAF_SPAWN_INTERVAL = 0.5;           // Frequency of leaf spawns (seconds)
+
+// --- Collectibles ---
+const COLLECTIBLE_SPAWN_CHANCE = 0.25;     // Chance a collectible spawns (0–1)
+const COLLECTIBLE_POINTS = 5;              // Points per collectible
+
+// --- Game Mechanics ---
+const INVINCIBILITY_DURATION = 2000;       // Invincible time after hit (ms)
+const BLINK_DURATION = 100;                // Duration of each blink
+const BLINK_INTERVAL = 3000;               // Time between blinks (ms)
+const DIFFICULTY_SCALING = 0.05;           // Increase scroll speed over time
+
+
+        // --- ASSET LOADING ---
+        function loadAsset(name, url) {
+            if (!url) {
+                console.warn(`No URL provided for asset: ${name}`);
+                return;
+            }
+            
+            assetsToLoad++;
+            
+            if (url.match(/\.(jpeg|jpg|gif|png)$/i)) {
+                const img = new Image();
+                img.src = url;
+                img.onload = () => {
+                    assets.images[name] = img;
+                    assetLoaded();
+                };
+                img.onerror = () => {
+                    console.error(`Failed to load image: ${name}`);
+                    assetLoaded();
+                };
+            } else if (url.match(/\.(mp3|wav|ogg)$/i)) {
+                const audio = new Audio();
+                audio.src = url;
+                audio.preload = 'auto';
+                let loaded = false;
+                
+                const markLoaded = () => {
+                    if (!loaded) {
+                        assets.sounds[name] = audio;
+                        if (name === 'soundMusic') audio.loop = true;
+                        assetLoaded();
+                        loaded = true;
+                    }
+                };
+                
+                audio.oncanplaythrough = markLoaded;
+                audio.onerror = () => {
+                    console.error(`Failed to load audio: ${name}`);
+                    assetLoaded();
+                    loaded = true;
+                };
+                
+                audio.load();
+                setTimeout(() => {
+                    if (!loaded) {
+                        console.warn(`Sound ${name} timeout.`);
+                        markLoaded();
+                    }
+                }, 4000);
+            } else {
+                assetsToLoad--;
+            }
+        }
+
+        function assetLoaded() {
+            assetsLoadedCount++;
+            const progress = Math.floor((assetsLoadedCount / assetsToLoad) * 100);
+            if (assetsLoadedCount >= assetsToLoad) {
+                setTimeout(() => {
+                    loadingScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                        initGame();
+                    }, 500);
+                }, 500);
+            }
+        }
+
+        function loadAllAssets() {
+            Object.keys(ASSETS).forEach(key => {
+                if (ASSETS[key]) loadAsset(key, ASSETS[key]);
+                else assetsToLoad--;
+            });
+            
+            if (assetsToLoad <= 0) {
+                loadingScreen.style.display = 'none';
+                initGame();
+            }
+        }
+
+        // --- GAME INITIALIZATION ---
+        function initGame() {
+            resizeCanvas();
+            loadHighScore();
+            bird.y = canvas.height / 2;
+            bird.x = 100;
+            gameState = 'ready';
+            startButton.style.display = 'block';
+            lastFrameTime = performance.now();
+            spawnLeaves();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function resizeCanvas() {
+            const containerWidth = gameContainer.clientWidth;
+            const containerHeight = gameContainer.clientHeight;
+            
+            canvas.width = containerWidth;
+            canvas.height = containerHeight;
+            
+            if (gameState === 'ready' || gameState === 'gameover') {
+                bird.y = canvas.height / 2;
+            }
+        }
+
+        // --- SOUND FUNCTIONS ---
+        function playSound(soundName, volume = 0.5) {
+            if (!assets.sounds[soundName]) return;
+            
+            try {
+                const sound = assets.sounds[soundName].cloneNode();
+                sound.volume = volume;
+                sound.play().catch(e => console.warn(`Could not play sound: ${e}`));
+            } catch (e) {
+                console.warn(`Error playing sound: ${e}`);
+            }
+        }
+
+        function stopSound(soundName) {
+            if (!assets.sounds[soundName]) return;
+            
+            try {
+                assets.sounds[soundName].pause();
+                assets.sounds[soundName].currentTime = 0;
+            } catch (e) {
+                console.warn(`Error stopping sound: ${e}`);
+            }
+        }
+
+        // --- DRAWING FUNCTIONS ---
+        function drawBackground() {
+            if (!assets.images.background) {
+                ctx.fillStyle = '#87CEEB';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                return;
+            }
+            
+            const bg = assets.images.background;
+            const bgAspectRatio = bg.height / bg.width;
+            const scaledBgHeight = canvas.width * bgAspectRatio;
+            let drawHeight = scaledBgHeight;
+            let drawY = 0;
+            
+            if (scaledBgHeight < canvas.height) {
+                drawHeight = canvas.height;
+            } else {
+                drawY = (canvas.height - scaledBgHeight) / 2;
+            }
+            
+            let scrollSpeed = OBSTACLE_SCROLL_SPEED * 0.2 + bird.velocityX * 0.02;
+            if (bird.isPowerUpActive) scrollSpeed *= POWERUP_SPEED_MULTIPLIER * 0.4;
+            
+            backgroundX = (backgroundX - scrollSpeed) % canvas.width;
+            
+            ctx.drawImage(bg, backgroundX, drawY, canvas.width, drawHeight);
+            ctx.drawImage(bg, backgroundX + canvas.width, drawY, canvas.width, drawHeight);
+        }
+
+        function drawBird(deltaTime) {
+            if (!assets.images.bird) return;
+
+            // Draw trail for Power Wing mode
+            if (bird.isPowerUpActive) {
+                bird.trail.unshift({ x: bird.x, y: bird.y });
+                if (bird.trail.length > BIRD_TRAIL_LENGTH) {
+                    bird.trail.pop();
+                }
+                
+                for (let i = 0; i < bird.trail.length; i++) {
+                    const pos = bird.trail[i];
+                    const alpha = 1 - (i / bird.trail.length);
+                    const sizeFactor = 1 - (i / bird.trail.length) * 0.5;
+                    
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, (bird.width / 3) * sizeFactor, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 100, ${alpha * 0.5})`;
+                    ctx.fill();
+                }
+            } else if (bird.trail.length > 0) {
+                bird.trail.shift();
+            }
+
+            // Blinking animation
+            if (gameState === 'playing' || gameState === 'ready') {
+                bird.blinkTimer -= deltaTime * 1000;
+                
+                if (bird.blinkTimer <= 0) {
+                    bird.isBlinking = !bird.isBlinking;
+                    
+                    if (bird.isBlinking) {
+                        bird.blinkTimer = BLINK_DURATION;
+                    } else {
+                        bird.blinkTimer = BLINK_INTERVAL;
+                    }
+                }
+            }
+
+            // Wing flapping animation
+            bird.flapPhase += deltaTime * (bird.isPowerUpActive ? 12 : 8);
+            const wingOffset = Math.sin(bird.flapPhase) * 7;
+            
+            // Rotation based on velocity
+            bird.rotation = Math.atan2(bird.velocityY, bird.velocityX + BIRD_BASE_FORWARD_VELOCITY) * 0.4;
+            
+            let currentRotation = bird.rotation;
+            
+            // Idle sway animation when game is ready
+            if (gameState === 'ready') {
+                bird.idleSwayPhase += IDLE_SWAY_SPEED * deltaTime * 60;
+                currentRotation += Math.sin(bird.idleSwayPhase) * IDLE_SWAY_AMOUNT;
+            }
+
+            ctx.save();
+            ctx.translate(bird.x, bird.y);
+            ctx.rotate(currentRotation);
+            
+            let currentBirdHeight = bird.height;
+            if (bird.isBlinking && (gameState === 'playing' || gameState === 'ready')) {
+                currentBirdHeight *= 0.85;
+            }
+
+            // Glowing effect for power-up
+            if (bird.isPowerUpActive) {
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = "rgba(255, 255, 0, 0.7)";
+            }
+            
+            // Draw the bird
+            ctx.drawImage(
+                assets.images.bird,
+                -bird.width / 3 - wingOffset / 3,
+                -currentBirdHeight / 4,
+                bird.width + wingOffset,
+                currentBirdHeight
+            );
+            
+            if (bird.isPowerUpActive) {
+                ctx.shadowBlur = 0;
+            }
+            
+            ctx.restore();
+        }
+
+        function drawTrees() {
+            trees.forEach(tree => {
+                if (!assets.images[tree.imgKey]) return;
+                
+                ctx.save();
+                
+                // Add slight shadow
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+                ctx.shadowBlur = 5;
+                ctx.shadowOffsetX = 3;
+                ctx.shadowOffsetY = 3;
+                
+                ctx.drawImage(
+                    assets.images[tree.imgKey],
+                    tree.x,
+                    tree.y,
+                    tree.width,
+                    tree.height
+                );
+                
+                ctx.restore();
+            });
+        }
+
+        function drawCollectibles() {
+            if (!assets.images.collectible_feather) return;
+            
+            collectibles.forEach(c => {
+                ctx.save();
+                ctx.translate(c.x, c.y);
+                ctx.rotate(c.rotation);
+                ctx.globalAlpha = c.alpha;
+                
+                // Add glow effect
+                if (bird.isPowerUpActive) {
+                    ctx.shadowColor = 'rgba(255, 255, 0, 0.7)';
+                    ctx.shadowBlur = 10;
+                }
+                
+                ctx.drawImage(
+                    assets.images.collectible_feather,
+                    -c.width / 2,
+                    -c.height / 2,
+                    c.width,
+                    c.height
+                );
+                
+                ctx.restore();
+            });
+        }
+
+        function drawParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= 0.03;
+                p.size *= 0.97;
+                
+                if (p.alpha <= 0 || p.size < 0.5) {
+                    particles.splice(i, 1);
+                } else {
+                    ctx.fillStyle = `rgba(139, 69, 19, ${p.alpha})`;
+                    ctx.beginPath();
+                    ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+                }
+            }
+        }
+
+        function drawLeaves() {
+            leaves.forEach(leaf => {
+                if (!assets.images[leaf.imgKey]) return;
+                
+                ctx.save();
+                ctx.translate(leaf.x, leaf.y);
+                ctx.rotate(leaf.rotation);
+                ctx.globalAlpha = leaf.alpha;
+                
+                ctx.drawImage(
+                    assets.images[leaf.imgKey],
+                    -leaf.width / 2,
+                    -leaf.height / 2,
+                    leaf.width,
+                    leaf.height
+                );
+                
+                ctx.restore();
+            });
+        }
+
+        function drawUI() {
+            if (gameState === 'loading') {
+                return;
+            } else if (gameState === 'ready') {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 32px "Comic Sans MS", cursive, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Flappy Forest Flight', canvas.width / 2, canvas.height / 3);
+                
+                ctx.font = '20px Arial';
+                ctx.fillText('Use Arrow Buttons to Move', canvas.width / 2, canvas.height / 2 - 20);
+                
+                ctx.fillText('Collect feathers for bonus points!', canvas.width / 2, canvas.height / 2 + 15);
+                
+                ctx.font = '18px Arial';
+                ctx.fillText(`High Score: ${highScore}`, canvas.width / 2, canvas.height / 2 + 60);
+                
+                startButton.style.display = 'block';
+            } else if (gameState === 'gameover') {
+                finalScoreElement.textContent = `Score: ${score}`;
+                highScoreElement.textContent = `High Score: ${highScore}`;
+                gameOverOverlay.classList.add('show');
+                startButton.style.display = 'block';
+            }
+        }
+
+        // --- GAME LOGIC ---
+        function createTreeObstaclePair() {
+            const gapSize = Math.random() * (VERTICAL_GAP_MAX - VERTICAL_GAP_MIN) + VERTICAL_GAP_MIN;
+            const minTreeHeight = 60;
+            const topTreeHeight = Math.random() * (canvas.height - gapSize - minTreeHeight * 2) + minTreeHeight;
+            const bottomTreeHeight = canvas.height - topTreeHeight - gapSize;
+
+            const randomTreeKeyTop = TREE_ASSET_KEYS[Math.floor(Math.random() * TREE_ASSET_KEYS.length)];
+            const randomTreeKeyBottom = TREE_ASSET_KEYS[Math.floor(Math.random() * TREE_ASSET_KEYS.length)];
+
+            trees.push({
+                x: canvas.width,
+                y: 0,
+                width: TREE_OBSTACLE_WIDTH,
+                height: topTreeHeight,
+                imgKey: randomTreeKeyTop,
+                isTopObstacle: true,
+                passed: false
+            });
+            
+            trees.push({
+                x: canvas.width,
+                y: topTreeHeight + gapSize,
+                width: TREE_OBSTACLE_WIDTH,
+                height: bottomTreeHeight,
+                imgKey: randomTreeKeyBottom,
+                isTopObstacle: false,
+                passed: false
+            });
+
+            // Spawn collectible with a chance
+            if (Math.random() < COLLECTIBLE_SPAWN_CHANCE && assets.images.collectible_feather) {
+                collectibles.push({
+                    x: canvas.width + TREE_OBSTACLE_WIDTH / 2,
+                    y: topTreeHeight + gapSize / 2 + (Math.random() * 60 - 30),
+                    width: 25,
+                    height: 25,
+                    type: 'feather',
+                    value: COLLECTIBLE_POINTS,
+                    rotation: Math.random() * Math.PI * 2,
+                    alpha: 1
+                });
+            }
+        }
+
+        function createPassParticles(treeEdgeX, gapCenterY) {
+            for (let i = 0; i < 8; i++) {
+                particles.push({
+                    x: treeEdgeX,
+                    y: gapCenterY + (Math.random() * 60 - 30),
+                    vx: -(Math.random() * 1 + 0.5),
+                    vy: (Math.random() * 2 - 1),
+                    size: Math.random() * 5 + 3,
+                    alpha: 1
+                });
+            }
+        }
+
+        function spawnLeaves() {
+            if (LEAF_ASSETS.some(key => !assets.images[key])) return;
+            
+            for (let i = 0; i < 15; i++) {
+                leaves.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    width: 20 + Math.random() * 20,
+                    height: 20 + Math.random() * 20,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotationSpeed: (Math.random() - 0.5) * 0.02,
+                    vx: (Math.random() - 0.5) * 0.5,
+                    vy: Math.random() * 0.5 + 0.5,
+                    alpha: 0.7 + Math.random() * 0.3,
+                    imgKey: LEAF_ASSETS[Math.floor(Math.random() * LEAF_ASSETS.length)]
+                });
+            }
+        }
+
+        function updateLeaves(deltaTime) {
+            leafSpawnTimer += deltaTime;
+            
+            if (leafSpawnTimer > LEAF_SPAWN_INTERVAL) {
+                if (leaves.length < 20 && LEAF_ASSETS.some(key => assets.images[key])) {
+                    leaves.push({
+                        x: Math.random() * canvas.width,
+                        y: -30,
+                        width: 20 + Math.random() * 20,
+                        height: 20 + Math.random() * 20,
+                        rotation: Math.random() * Math.PI * 2,
+                        rotationSpeed: (Math.random() - 0.5) * 0.02,
+                        vx: (Math.random() - 0.5) * 0.5,
+                        vy: Math.random() * 0.5 + 0.5,
+                        alpha: 0.7 + Math.random() * 0.3,
+                        imgKey: LEAF_ASSETS[Math.floor(Math.random() * LEAF_ASSETS.length)]
+                    });
+                }
+                leafSpawnTimer = 0;
+            }
+            
+            for (let i = leaves.length - 1; i >= 0; i--) {
+                const leaf = leaves[i];
+                leaf.x += leaf.vx;
+                leaf.y += leaf.vy;
+                leaf.rotation += leaf.rotationSpeed;
+                
+                if (leaf.y > canvas.height + 50 || leaf.x < -50 || leaf.x > canvas.width + 50) {
+                    leaves.splice(i, 1);
+                }
+            }
+        }
+
+        function updateBirdPhysics(deltaTime) {
+            bird.velocityX *= FRICTION;
+            bird.velocityY *= FRICTION;
+            
+            let currentForwardVelocity = BIRD_BASE_FORWARD_VELOCITY;
+            if (bird.isPowerUpActive) currentForwardVelocity *= POWERUP_SPEED_MULTIPLIER;
+            
+            bird.x += (currentForwardVelocity + bird.velocityX) * deltaTime * 60;
+            bird.y += bird.velocityY * deltaTime * 60;
+            
+            // Keep bird within canvas bounds
+            bird.x = Math.max(bird.width / 2, Math.min(bird.x, canvas.width - bird.width / 2));
+            bird.y = Math.max(bird.height / 2, Math.min(bird.y, canvas.height - bird.height / 2));
+        }
+
+        function updateTreesAndScore(deltaTime) {
+            if (gameState !== 'playing') return;
+            
+            timeSinceLastObstacle += deltaTime;
+            if (timeSinceLastObstacle > OBSTACLE_SPAWN_INTERVAL) {
+                createTreeObstaclePair();
+                timeSinceLastObstacle = 0;
+            }
+            
+            let scrollSpeed = OBSTACLE_SCROLL_SPEED;
+            if (bird.isPowerUpActive) scrollSpeed *= POWERUP_SPEED_MULTIPLIER;
+            
+            for (let i = trees.length - 1; i >= 0; i--) {
+                trees[i].x -= scrollSpeed;
+                
+                if (!trees[i].passed && trees[i].x + TREE_OBSTACLE_WIDTH < bird.x - bird.width / 2) {
+                    if (trees[i].isTopObstacle) {
+                        score++;
+                        obstaclesPassedForPowerUp++;
+                        scoreDisplayElement.textContent = score;
+                        scoreDisplayElement.classList.add('scored');
+                        
+                        setTimeout(() => {
+                            scoreDisplayElement.classList.remove('scored');
+                        }, 200);
+                        
+                        playSound('soundScore', 0.4);
+                        
+                        // Calculate gap center for particles
+                        const gapCenterY = trees[i].y + trees[i].height + 
+                            (trees[i+1] ? (trees[i+1].y - (trees[i].y + trees[i].height)) / 2 : 0);
+                        
+                        createPassParticles(trees[i].x + TREE_OBSTACLE_WIDTH, gapCenterY);
+                        
+                        // Update power-up meter
+                        const powerUpPercent = (obstaclesPassedForPowerUp / POWERUP_THRESHOLD) * 100;
+                        powerUpFill.style.width = `${Math.min(100, powerUpPercent)}%`;
+                        
+                        if (obstaclesPassedForPowerUp >= POWERUP_THRESHOLD) {
+                            activatePowerUp();
+                        }
+                    }
+                    
+                    trees[i].passed = true;
+                }
+                
+                if (trees[i].x + TREE_OBSTACLE_WIDTH < 0) {
+                    trees.splice(i, 1);
+                }
+            }
+        }
+
+        function updateCollectibles(deltaTime) {
+            let scrollSpeed = OBSTACLE_SCROLL_SPEED;
+            if (bird.isPowerUpActive) scrollSpeed *= POWERUP_SPEED_MULTIPLIER;
+            
+            for (let i = collectibles.length - 1; i >= 0; i--) {
+                const c = collectibles[i];
+                c.x -= scrollSpeed;
+                c.rotation += 0.05 * deltaTime * 60;
+                
+                // Collision with bird
+                const dist = Math.sqrt(Math.pow(bird.x - c.x, 2) + Math.pow(bird.y - c.y, 2));
+                if (dist < bird.width / 2 + c.width / 2) {
+                    score += c.value;
+                    scoreDisplayElement.textContent = score;
+                    scoreDisplayElement.classList.add('scored');
+                    
+                    setTimeout(() => {
+                        scoreDisplayElement.classList.remove('scored');
+                    }, 200);
+                    
+                    playSound('soundCollect', 0.5);
+                    collectibles.splice(i, 1);
+                    
+                    // Add collection particles
+                    for (let j = 0; j < 10; j++) {
+                        particles.push({
+                            x: c.x,
+                            y: c.y,
+                            vx: (Math.random() - 0.5) * 3,
+                            vy: (Math.random() - 0.5) * 3,
+                            size: Math.random() * 4 + 2,
+                            alpha: 1
+                        });
+                    }
+                } else if (c.x + c.width < 0) {
+                    collectibles.splice(i, 1);
+                }
+            }
+        }
+
+        function updatePowerUp(deltaTime) {
+            if (bird.isPowerUpActive) {
+                bird.powerUpTimer -= deltaTime * 1000;
+                
+                // Flash effect when power-up is about to end
+                if (bird.powerUpTimer < 1000) {
+                    scoreDisplayElement.classList.toggle('power-up', Math.floor(bird.powerUpTimer / 100) % 2 === 0);
+                }
+                
+                if (bird.powerUpTimer <= 0) {
+                    bird.isPowerUpActive = false;
+                    bird.trail = [];
+                    scoreDisplayElement.classList.remove('power-up');
+                    powerUpFill.style.width = '0%';
+                }
+            }
+        }
+
+        function checkCollisions() {
+            if (bird.invincible) return;
+            
+            const birdL = bird.x - bird.width/2*0.7;
+            const birdR = bird.x + bird.width/2*0.7;
+            const birdT = bird.y - bird.height/2*0.7;
+            const birdB = bird.y + bird.height/2*0.7;
+            
+            for (const tree of trees) {
+                if (birdR > tree.x && birdL < tree.x + tree.width) {
+                    if ((tree.isTopObstacle && birdT < tree.y + tree.height) ||
+                        (!tree.isTopObstacle && birdB > tree.y)) {
+                        
+                        if (bird.isPowerUpActive) {
+                            // Instead of game over, make bird invincible for short time
+                            bird.invincible = true;
+                            setTimeout(() => {
+                                bird.invincible = false;
+                            }, INVINCIBILITY_DURATION);
+                            
+                            // Reset power-up
+                            bird.isPowerUpActive = false;
+                            bird.powerUpTimer = 0;
+                            bird.trail = [];
+                            obstaclesPassedForPowerUp = 0;
+                            powerUpFill.style.width = '0%';
+                            
+                            playSound('soundHit', 0.3);
+                            
+                            // Add hit particles
+                            for (let i = 0; i < 15; i++) {
+                                particles.push({
+                                    x: bird.x,
+                                    y: bird.y,
+                                    vx: (Math.random() - 0.5) * 5,
+                                    vy: (Math.random() - 0.5) * 5,
+                                    size: Math.random() * 6 + 3,
+                                    alpha: 1
+                                });
+                            }
+                            
+                            return;
+                        } else {
+                            gameOver();
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        // --- GAME ACTIONS ---
+        function nudgeBird(dx, dy) {
+            if (gameState !== 'playing') return;
+            
+            bird.velocityX += dx * BIRD_NUDGE_FORCE;
+            bird.velocityY += dy * BIRD_NUDGE_FORCE;
+            
+            bird.velocityX = Math.max(-BIRD_MAX_VELOCITY, Math.min(BIRD_MAX_VELOCITY, bird.velocityX));
+            bird.velocityY = Math.max(-BIRD_MAX_VELOCITY, Math.min(BIRD_MAX_VELOCITY, bird.velocityY));
+            
+            playSound('soundMove', 0.3);
+            bird.flapPhase += 1.5;
+        }
+
+        function activatePowerUp() {
+            bird.isPowerUpActive = true;
+            bird.powerUpTimer = POWERUP_DURATION;
+            obstaclesPassedForPowerUp = 0;
+            scoreDisplayElement.classList.add('power-up');
+            powerUpMeter.style.display = 'block';
+            playSound('soundPowerUp', 0.6);
+        }
+
+        function startGame() {
+            bird.x = 100;
+            bird.y = canvas.height / 2;
+            bird.velocityX = 0;
+            bird.velocityY = 0;
+            bird.rotation = 0;
+            bird.flapPhase = 0;
+            bird.blinkTimer = BLINK_INTERVAL;
+            bird.isBlinking = false;
+            bird.isPowerUpActive = false;
+            bird.powerUpTimer = 0;
+            bird.trail = [];
+            bird.invincible = false;
+            
+            obstaclesPassedForPowerUp = 0;
+            trees = [];
+            collectibles = [];
+            particles = [];
+            
+            score = 0;
+            scoreDisplayElement.textContent = score;
+            scoreDisplayElement.classList.add('visible');
+            scoreDisplayElement.classList.remove('power-up');
+            
+            timeSinceLastObstacle = OBSTACLE_SPAWN_INTERVAL * 0.5;
+            gameState = 'playing';
+            gameOverOverlay.classList.remove('show');
+            startButton.style.display = 'none';
+            powerUpMeter.style.display = 'block';
+            powerUpFill.style.width = '0%';
+            
+            playSound('soundMusic', 0.25);
+        }
+
+        function gameOver() {
+            gameState = 'gameover';
+            stopSound('soundMusic');
+            playSound('soundHit', 0.5);
+            
+            if (score > highScore) {
+                highScore = score;
+                saveHighScore();
+            }
+            
+            // Add explosion particles
+            for (let i = 0; i < 30; i++) {
+                particles.push({
+                    x: bird.x,
+                    y: bird.y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8,
+                    size: Math.random() * 8 + 4,
+                    alpha: 1
+                });
+            }
+        }
+
+        // --- UTILITIES ---
+        function loadHighScore() {
+            const savedScore = localStorage.getItem('flappyForestFlightHS_v2');
+            if (savedScore) {
+                highScore = parseInt(savedScore, 10);
+            }
+        }
+
+        function saveHighScore() {
+            localStorage.setItem('flappyForestFlightHS_v2', highScore);
+        }
+
+        // --- EVENT LISTENERS ---
+        window.addEventListener('resize', resizeCanvas);
+
+        startButton.addEventListener('click', () => {
+            if (gameState === 'ready' || gameState === 'gameover') {
+                startGame();
+            }
+        });
+
+        restartButton.addEventListener('click', () => {
+            if (gameState === 'gameover') {
+                startGame();
+            }
+        });
+
+        startButton.addEventListener('touchstart', e => {
+            e.preventDefault();
+            if (gameState === 'ready' || gameState === 'gameover') {
+                startGame();
+            }
+        });
+
+        const controlButtons = [
+            { element: upButton, dx: 0, dy: -1 },
+            { element: downButton, dx: 0, dy: 1 },
+            { element: leftButton, dx: -1, dy: 0 },
+            { element: rightButton, dx: 1, dy: 0 }
+        ];
+
+        controlButtons.forEach(button => {
+            button.element.addEventListener('click', () => nudgeBird(button.dx, button.dy));
+            button.element.addEventListener('touchstart', e => {
+                e.preventDefault();
+                nudgeBird(button.dx, button.dy);
+            });
+        });
+
+        window.addEventListener('keydown', e => {
+            if (gameState !== 'playing') return;
+            
+            switch (e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    nudgeBird(0, -1);
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    nudgeBird(0, 1);
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    nudgeBird(-1, 0);
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    nudgeBird(1, 0);
+                    break;
+            }
+        });
+
+        // --- GAME LOOP ---
+        function gameLoop(currentTime) {
+            const deltaTime = (currentTime - lastFrameTime) / 1000;
+            lastFrameTime = currentTime;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            drawBackground();
+            drawTrees();
+            drawCollectibles();
+            drawLeaves();
+            drawBird(deltaTime);
+            drawParticles();
+            
+            if (gameState === 'playing') {
+                updateBirdPhysics(deltaTime);
+                updateTreesAndScore(deltaTime);
+                updateCollectibles(deltaTime);
+                updatePowerUp(deltaTime);
+                updateLeaves(deltaTime);
+                checkCollisions();
+            }
+            
+            drawUI();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- START THE GAME ---
+        loadAllAssets();
+    </script>
+</body>
+</html>
