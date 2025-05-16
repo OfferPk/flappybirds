@@ -1,0 +1,92 @@
+GAMEPLAY FEATURES
+1. Power-Ups & Abilities
+Slow Motion Power-Up: Slows down obstacles for a few seconds.
+
+Shield Bubble: Lets the bird survive one crash.
+
+Magnet: Pulls in nearby collectibles.
+
+Double Points: Doubles score gain for a limited time.
+
+Mini Turbo Boost: Temporarily accelerates the bird forward with invincibility.
+
+2. Bird Evolution / Skins
+Unlockable Skins: Birds evolve after scoring milestones.
+
+Ability-Based Skins: Each skin gives a special ability (e.g., ghost bird can phase through one pipe).
+
+3. Gravity & Weather Variants
+Wind Mode: Blows bird left/right randomly.
+
+Rain/Storm Mode: Adds raindrop effects and more difficult physics.
+
+Night Mode: Harder to see — use flashlight or glowing bird.
+
+4. Enemy Elements
+Flying Enemies: Dodge flying bees or bats.
+
+Turrets: Occasionally fire slow-moving bullets.
+
+Laser Gates: Open and close with timing challenges.
+
+🌱 WORLD & STAGE VARIATIONS
+5. Dynamic Worlds
+Auto-Changing Biomes: Switch from jungle → lava → ice after every 30 points.
+
+Warp Portals: Transport you to a “side world” for bonus challenges.
+
+6. Side Missions
+Challenges: “Collect 5 feathers without hitting obstacles.”
+
+Mini-Goals: “Perfect dodge 3 times in a row” to earn extra points.
+
+7. Interactive Obstacles
+Rotating Pipes
+
+Moving Platforms instead of static gaps.
+
+Cracked Pipes: Collapse if touched lightly.
+
+📈 SCORING & COMPETITION
+8. Combo & Multiplier System
+Perfect flying → builds a combo → multiplies score.
+
+Missing or crashing resets combo.
+
+9. Online Leaderboards
+Global, daily, and friends-only leaderboards.
+
+Show “Top 10 Near You” with geolocation.
+
+10. Ghost Replay of Best Score
+Show a semi-transparent ghost bird of your high score flight.
+
+🔊 AUDIO-VISUAL ENHANCEMENTS
+11. Dynamic Soundtrack
+Background music changes with performance or score.
+
+Add heartbeat effect when near your high score.
+
+12. Particle Effects
+Feather trails, rainbow trails, smoke when using boost, sparkles when collecting.
+
+🧩 INTEGRATED FUN FEATURES
+13. Flappy Bird Builder
+Let players create and share their own obstacle layouts.
+
+Community-shared levels = endless gameplay.
+
+14. AI Mode
+“Watch AI Try” button lets a bot attempt the level based on your last path.
+
+15. Voice-Activated Mode
+Control the bird with your voice pitch ("Ahhh" makes it flap).
+
+🔓 PROGRESSION SYSTEM
+16. XP, Levels, and Upgrades
+Level up the bird to reduce gravity slightly or flap stronger.
+
+Skill tree unlocks: glide longer, shrink size, magnetic collectible pull.
+
+17. Daily Quests & Rewards
+“Flap through 20 pipes in one run” → earn coins → unlock skins.
