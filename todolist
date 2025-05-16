@@ -90,3 +90,21 @@ Skill tree unlocks: glide longer, shrink size, magnetic collectible pull.
 
 17. Daily Quests & Rewards
 “Flap through 20 pipes in one run” → earn coins → unlock skins.
+# Flappy Bird Game Advanced Enhancement Todo
+
+## Phase 1
+- [x] Review current game code and features
+- [x] Clarify and prioritize advanced enhancements with user
+- [ ] Design and implement Phase 1 features:
+  - [ ] Power-ups system (Double Points, Mini Turbo Boost)
+  - [ ] Bird Evolution/Skins with special abilities
+  - [ ] Combo/multiplier scoring system
+- [ ] Deliver Phase 1 playable upgrade to user
+
+## Future Phases
+- [ ] Design and implement Phase 2 features
+- [ ] Deliver Phase 2 playable upgrade to user
+- [ ] Design and implement Phase 3 features
+- [ ] Deliver Phase 3 playable upgrade to user
+- [ ] Validate and balance full gameplay experience
+- [ ] Report and send final fully enhanced game to user
