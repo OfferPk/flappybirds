@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flappy Forest Flight - Combat Enhanced Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            touch-action: manipulation;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        @font-face {
+            font-family: 'GameFont';
+            src: url('https://fonts.googleapis.com/css2?family=Bangers&display=swap');
+        }
+        
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #FF9800;
+            --accent-color: #FFD700;
+            --dark-color: #003300;
+            --light-color: #8BC34A;
+            --danger-color: #FF5252;
+            --bird-color-1: #FF9800;
+            --bird-color-2: #F57C00;
+            --bird-color-3: #E65100;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to bottom, var(--dark-color), #001a00);
+            overflow: hidden;
+            font-family: 'Bangers', 'Arial', sans-serif;
+            position: relative;
+        }
+        
+        /* Animated background particles */
+        .background-particle {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+            animation: float-up var(--duration) linear infinite;
+        }
+        
+        @keyframes float-up {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 1000px;
+            height: 500px;
+            box-shadow: 0 8px 30px rgba(0, 50, 0, 0.8);
+            overflow: hidden;
+            background: #333;
+            border: 8px solid #5D4037;
+            border-radius: 15px;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+        
+        #game-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Enhanced score display */
+        #score-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 36px;
+            font-weight: 900;
+            color: #fff;
+            background: linear-gradient(145deg, rgba(0, 0, 0, 0.6), rgba(20, 20, 20, 0.8));
+            padding: 12px 28px;
+            border-radius: 14px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.1);
+            z-index: 20;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+            transform: translateZ(0);
+        }
+        
+        /* Game UI elements */
+        .game-ui {
+            position: absolute;
+            z-index: 20;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+        }
+        
+        #health-bar-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 200px;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            z-index: 20;
+        }
+        
+        #health-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(to right, #FF5252, #FF9800);
+            transition: width 0.3s ease;
+        }
+        
+        #power-bar-container {
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            width: 200px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            z-index: 20;
+        }
+        
+        #power-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #4CAF50, #8BC34A);
+            transition: width 0.1s linear;
+        }
+        
+        /* Game overlays */
+        .game-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 30;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        
+        .game-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .overlay-title {
+            font-size: 48px;
+            color: white;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
+        }
+        
+        .overlay-text {
+            font-size: 24px;
+            color: white;
+            margin-bottom: 30px;
+            text-align: center;
+            max-width: 80%;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+        }
+        
+        .overlay-button {
+            padding: 15px 40px;
+            font-size: 24px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            font-family: 'Bangers', 'Arial', sans-serif;
+            letter-spacing: 1px;
+        }
+        
+        .overlay-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            background: var(--secondary-color);
+        }
+        
+        /* Power-up notification */
+        #power-up-notification {
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 25;
+        }
+        
+        /* Mobile controls */
+        #mobile-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: none;
+            z-index: 20;
+        }
+        
+        .mobile-button {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 10px;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            #game-container {
+                height: 400px;
+            }
+            
+            #mobile-controls {
+                display: flex;
+            }
+            
+            .overlay-title {
+                font-size: 36px;
+            }
+            
+            .overlay-text {
+                font-size: 18px;
+            }
+        }
+        
+        /* Combat-specific styles */
+        .projectile {
+            position: absolute;
+            background-color: #FFF;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        .enemy {
+            position: absolute;
+            background-color: #F00;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        .explosion {
+            position: absolute;
+            pointer-events: none;
+            z-index: 15;
+        }
+        
+        /* Combat UI */
+        #combat-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            z-index: 20;
+        }
+        
+        .combat-button {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 10px;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+        }
+        
+        .combat-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Combo display */
+        #combo-display {
+            position: absolute;
+            top: 100px;
+            right: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 20;
+        }
+        
+        /* Hit indicators */
+        .hit-indicator {
+            position: absolute;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+            pointer-events: none;
+            z-index: 20;
+            animation: float-up-fade 1s ease-out forwards;
+        }
+        
+        @keyframes float-up-fade {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        
+        <!-- UI Elements -->
+        <div id="score-display" class="game-ui">0</div>
+        <div id="health-bar-container">
+            <div id="health-bar"></div>
+        </div>
+        <div id="power-bar-container">
+            <div id="power-bar"></div>
+        </div>
+        <div id="power-up-notification" class="game-ui"></div>
+        <div id="combo-display" class="game-ui">x1 COMBO!</div>
+        
+        <!-- Mobile Controls -->
+        <div id="mobile-controls">
+            <div class="mobile-button" id="mobile-left"><i class="fas fa-arrow-left"></i></div>
+            <div class="mobile-button" id="mobile-right"><i class="fas fa-arrow-right"></i></div>
+            <div class="mobile-button" id="mobile-up"><i class="fas fa-arrow-up"></i></div>
+            <div class="mobile-button" id="mobile-down"><i class="fas fa-arrow-down"></i></div>
+        </div>
+        
+        <!-- Combat Controls -->
+        <div id="combat-controls">
+            <div class="combat-button" id="throw-stone"><i class="fas fa-circle"></i></div>
+            <div class="combat-button" id="fire-missile"><i class="fas fa-rocket"></i></div>
+        </div>
+        
+        <!-- Game Overlays -->
+        <div id="start-screen" class="game-overlay active">
+            <h1 class="overlay-title">Flappy Forest Flight</h1>
+            <p class="overlay-text">Combat Enhanced Edition</p>
+            <button id="start-button" class="overlay-button">Start Game</button>
+        </div>
+        
+        <div id="game-over-screen" class="game-overlay">
+            <h1 class="overlay-title">Game Over</h1>
+            <p class="overlay-text">Score: <span id="final-score">0</span></p>
+            <p class="overlay-text">High Score: <span id="high-score">0</span></p>
+            <button id="restart-button" class="overlay-button">Play Again</button>
+        </div>
+        
+        <div id="pause-screen" class="game-overlay">
+            <h1 class="overlay-title">Game Paused</h1>
+            <button id="resume-button" class="overlay-button">Resume</button>
+        </div>
+    </div>
+
+    <script>
+        // Combat Mechanics for Flappy Forest Flight - Enhanced Edition
+        // This file contains the combat system implementation including:
+        // - Bird attacks (stone throwing, missiles)
+        // - Enemy types (bees, turtles, snakes)
+        // - Enemy attacks (S400 missiles, rockets, stones)
+        // - Health system
+        // - Combat animations and effects
+
+        // --- COMBAT CONSTANTS ---
+        const STONE_COOLDOWN = 500; // 0.5 seconds between stone throws
+        const STONE_SPEED = 8;
+        const STONE_DAMAGE = 1;
+        const STONE_SIZE = 15;
+
+        const MISSILE_DAMAGE = 3;
+        const MISSILE_SPEED = 10;
+        const MISSILE_SIZE = 20;
+
+        // Enemy constants
+        const ENEMY_SPAWN_INTERVAL = 3000; // 3 seconds between enemy spawns
+        const ENEMY_TYPES = ['bee', 'turtle', 'snake'];
+        const ENEMY_ATTACK_CHANCE = 0.01; // Chance per frame that an enemy will attack
+
+        // Health constants
+        const BIRD_MAX_HEALTH = 5;
+        const BEE_MAX_HEALTH = 2;
+        const TURTLE_MAX_HEALTH = 4;
+        const SNAKE_MAX_HEALTH = 3;
+
+        // Attack constants
+        const S400_MISSILE_SPEED = 6;
+        const S400_MISSILE_DAMAGE = 2;
+        const S400_MISSILE_SIZE = 25;
+
+        const ROCKET_SPEED = 7;
+        const ROCKET_DAMAGE = 1;
+        const ROCKET_SIZE = 20;
+
+        const ENEMY_STONE_SPEED = 5;
+        const ENEMY_STONE_DAMAGE = 1;
+        const ENEMY_STONE_SIZE = 12;
+
+        // --- COMBAT GAME OBJECTS ---
+        // Bird attack properties
+        bird.lastStoneTime = 0;
+        bird.stones = [];
+        bird.missiles = [];
+        bird.health = BIRD_MAX_HEALTH;
+        bird.isAttacking = false;
+        bird.attackCooldown = 0;
+
+        // Enemy arrays
+        let enemies = [];
+        let enemyProjectiles = [];
+
+        // --- COMBAT ASSET URLS ---
+        const COMBAT_ASSETS = {
+            // Bird projectiles
+            stone: 'https://i.ibb.co/JJvVXWl/stone.png',
+            missile: 'https://i.ibb.co/JJvjcQ/missile.png',
+            
+            // Enemies
+            bee: 'https://i.ibb.co/JJvVvRs/bee.png',
+            bee_moving_sheet: 'https://i.ibb.co/JJvVvRs/bee-sheet.png',
+            turtle: 'https://i.ibb.co/JJvVvRs/turtle.png',
+            turtle_moving_sheet: 'https://i.ibb.co/JJvVvRs/turtle-sheet.png',
+            snake: 'https://i.ibb.co/JJvVvRs/snake.png',
+            snake_moving_sheet: 'https://i.ibb.co/JJvVvRs/snake-sheet.png',
+            
+            // Enemy projectiles
+            s400_missile: 'https://i.ibb.co/JJvVvRs/s400-missile.png',
+            rocket: 'https://i.ibb.co/JJvVvRs/rocket.png',
+            enemy_stone: 'https://i.ibb.co/JJvVvRs/enemy-stone.png',
+            
+            // Effects
+            explosion: 'https://i.ibb.co/JJvVvRs/explosion.png',
+            explosion_sheet: 'https://i.ibb.co/JJvVvRs/explosion-sheet.png',
+            hit: 'https://i.ibb.co/JJvVvRs/hit.png',
+            hit_sheet: 'https://i.ibb.co/JJvVvRs/hit-sheet.png',
+            
+            // Custom bird
+            custom_bird: 'https://i.ibb.co/JJvVvRs/rocket-bird.png',
+            
+            // Custom turtle
+            custom_turtle: 'https://i.ibb.co/JJvVvRs/rocket-turtle.png',
+            
+            // Turtle variants
+            turtle_variant1: 'https://i.ibb.co/JJvVvRs/turtle-variant1.png',
+            turtle_variant2: 'https://i.ibb.co/JJvVvRs/turtle-variant2.png',
+            turtle_variant3: 'https://i.ibb.co/JJvVvRs
+(Content truncated due to size limit. Use line ranges to read in chunks)
