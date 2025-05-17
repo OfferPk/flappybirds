@@ -1,0 +1,247 @@
+// Phase 3 Visual Effects and Automatic Firing System Design
+
+/**
+ * PARTICLE SYSTEM
+ * - Used for explosions, hit effects, and environmental particles
+ * - Configurable for different visual effects
+ * - Performance optimized with particle pooling
+ */
+class ParticleSystem {
+  constructor() {
+    // Particle pools for different effect types
+    this.explosionParticles = [];
+    this.trailParticles = [];
+    this.environmentParticles = [];
+    
+    // Particle configurations
+    this.explosionConfig = {
+      count: 20,
+      speed: 3,
+      size: { min: 2, max: 6 },
+      colors: ['#FF5722', '#FFEB3B', '#FF9800'],
+      lifetime: { min: 500, max: 1000 },
+      gravity: 0.1,
+      spread: 360
+    };
+    
+    this.trailConfig = {
+      count: 5,
+      speed: 1,
+      size: { min: 1, max: 3 },
+      colors: ['#4CAF50', '#8BC34A', '#CDDC39'],
+      lifetime: { min: 300, max: 600 },
+      gravity: 0.05,
+      spread: 30
+    };
+    
+    this.cloudConfig = {
+      count: 10,
+      speed: 0.5,
+      size: { min: 30, max: 80 },
+      colors: ['rgba(255,255,255,0.7)'],
+      lifetime: { min: 10000, max: 20000 },
+      gravity: 0,
+      spread: 10
+    };
+  }
+  
+  // Create explosion effect at position
+  createExplosion(x, y, scale = 1) {
+    // Implementation details for explosion particles
+  }
+  
+  // Create trail effect behind moving object
+  createTrail(x, y, angle, speed) {
+    // Implementation details for trail particles
+  }
+  
+  // Create cloud particles
+  createClouds(canvasWidth, canvasHeight) {
+    // Implementation details for cloud particles
+  }
+  
+  // Update all active particles
+  update(deltaTime) {
+    // Update logic for all particle types
+  }
+  
+  // Render all active particles
+  render(ctx) {
+    // Rendering logic for all particle types
+  }
+}
+
+/**
+ * AUTOMATIC FIRING SYSTEM
+ * - Handles timing and creation of projectiles
+ * - Balances firing rate for gameplay
+ * - Includes visual effects for firing
+ */
+class AutomaticFiringSystem {
+  constructor(bird) {
+    this.bird = bird;
+    
+    // Firing configurations
+    this.stoneConfig = {
+      cooldown: 800, // ms between shots
+      lastFireTime: 0,
+      damage: 1,
+      speed: 8,
+      size: 15
+    };
+    
+    this.missileConfig = {
+      cooldown: 5000, // ms between missiles
+      lastFireTime: 0,
+      damage: 3,
+      speed: 10,
+      size: 20,
+      powerRequired: 100 // Power meter must be full
+    };
+    
+    // Projectile containers
+    this.stones = [];
+    this.missiles = [];
+    
+    // Power meter (0-100)
+    this.powerMeter = 0;
+    this.powerIncreaseRate = 5; // per second
+  }
+  
+  // Update firing system
+  update(deltaTime, enemies) {
+    // Increase power meter
+    this.powerMeter = Math.min(this.powerMeter + this.powerIncreaseRate * deltaTime, 100);
+    
+    // Auto-fire stones if cooldown elapsed
+    const currentTime = Date.now();
+    if (currentTime - this.stoneConfig.lastFireTime > this.stoneConfig.cooldown) {
+      this.fireStone();
+      this.stoneConfig.lastFireTime = currentTime;
+    }
+    
+    // Auto-fire missile if power meter full and cooldown elapsed
+    if (this.powerMeter >= this.missileConfig.powerRequired && 
+        currentTime - this.missileConfig.lastFireTime > this.missileConfig.cooldown) {
+      this.fireMissile();
+      this.powerMeter = 0;
+      this.missileConfig.lastFireTime = currentTime;
+    }
+    
+    // Update projectiles
+    this.updateProjectiles(deltaTime, enemies);
+  }
+  
+  // Fire stone automatically
+  fireStone() {
+    // Implementation for creating and firing stone
+  }
+  
+  // Fire missile automatically when power meter is full
+  fireMissile() {
+    // Implementation for creating and firing missile
+  }
+  
+  // Update all projectiles
+  updateProjectiles(deltaTime, enemies) {
+    // Update logic for stones and missiles
+    // Check for collisions with enemies
+  }
+  
+  // Render all projectiles
+  render(ctx) {
+    // Rendering logic for stones and missiles
+  }
+}
+
+/**
+ * ANIMATED BACKGROUND
+ * - Handles cloud animation and parallax effects
+ * - Creates depth in the game environment
+ */
+class AnimatedBackground {
+  constructor(canvasWidth, canvasHeight) {
+    this.width = canvasWidth;
+    this.height = canvasHeight;
+    
+    // Cloud system
+    this.clouds = [];
+    this.cloudSpawnTimer = 0;
+    this.cloudSpawnInterval = 3000; // ms
+    
+    // Parallax layers
+    this.layers = [
+      { speed: 0.2, elements: [] }, // Far background
+      { speed: 0.5, elements: [] }, // Mid background
+      { speed: 1.0, elements: [] }  // Foreground
+    ];
+    
+    // Initialize clouds
+    this.initializeClouds();
+  }
+  
+  // Initialize cloud system
+  initializeClouds() {
+    // Create initial set of clouds
+  }
+  
+  // Update background animation
+  update(deltaTime) {
+    // Update cloud positions
+    // Spawn new clouds as needed
+    // Update parallax layers
+  }
+  
+  // Render animated background
+  render(ctx) {
+    // Render sky gradient
+    // Render parallax layers
+    // Render clouds
+  }
+}
+
+/**
+ * WIND EFFECT SYSTEM
+ * - Creates visual wind trails behind moving objects
+ * - Enhances sense of speed and movement
+ */
+class WindEffectSystem {
+  constructor() {
+    this.windParticles = [];
+    this.maxParticles = 50;
+    
+    // Wind effect configuration
+    this.config = {
+      size: { min: 2, max: 8 },
+      speed: { min: 1, max: 3 },
+      lifetime: { min: 300, max: 600 },
+      colors: ['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']
+    };
+  }
+  
+  // Create wind effect behind moving object
+  createWindEffect(x, y, velocityX, velocityY) {
+    // Implementation for creating wind particles based on movement
+  }
+  
+  // Update wind particles
+  update(deltaTime) {
+    // Update logic for wind particles
+  }
+  
+  // Render wind particles
+  render(ctx) {
+    // Rendering logic for wind particles
+  }
+}
+
+/**
+ * INTEGRATION PLAN
+ * 
+ * 1. Add these systems to the main game loop
+ * 2. Connect bird movement to wind effect system
+ * 3. Replace manual firing with automatic firing system
+ * 4. Add particle effects to collisions and explosions
+ * 5. Enhance background with animated clouds
+ * 6. Optimize for performance
+ */
