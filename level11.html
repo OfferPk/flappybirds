@@ -1,0 +1,2510 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flappy Forest Flight - Combat Enhanced Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            touch-action: manipulation;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        @font-face {
+            font-family: 'GameFont';
+            src: url('https://fonts.googleapis.com/css2?family=Bangers&display=swap');
+        }
+        
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #FF9800;
+            --accent-color: #FFD700;
+            --dark-color: #003300;
+            --light-color: #8BC34A;
+            --danger-color: #FF5252;
+            --bird-color-1: #FF9800;
+            --bird-color-2: #F57C00;
+            --bird-color-3: #E65100;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to bottom, var(--dark-color), #001a00);
+            overflow: hidden;
+            font-family: 'Bangers', 'Arial', sans-serif;
+            position: relative;
+        }
+        
+        /* Animated background particles */
+        .background-particle {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+            animation: float-up var(--duration) linear infinite;
+        }
+        
+        @keyframes float-up {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 1000px;
+            height: 500px;
+            box-shadow: 0 8px 30px rgba(0, 50, 0, 0.8);
+            overflow: hidden;
+            background: #333;
+            border: 8px solid #5D4037;
+            border-radius: 15px;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+        
+        #game-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Enhanced score display */
+        #score-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 36px;
+            font-weight: 900;
+            color: #fff;
+            background: linear-gradient(145deg, rgba(0, 0, 0, 0.6), rgba(20, 20, 20, 0.8));
+            padding: 12px 28px;
+            border-radius: 14px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.1);
+            z-index: 20;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+            transform: translateZ(0);
+        }
+        
+        /* Game UI elements */
+        .game-ui {
+            position: absolute;
+            z-index: 20;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+        }
+        
+        #health-bar-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 200px;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            z-index: 20;
+        }
+        
+        #health-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(to right, #FF5252, #FF9800);
+            transition: width 0.3s ease;
+        }
+        
+        #power-bar-container {
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            width: 200px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            z-index: 20;
+        }
+        
+        #power-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #4CAF50, #8BC34A);
+            transition: width 0.1s linear;
+        }
+        
+        /* Game overlays */
+        .game-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 30;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        
+        .game-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .overlay-title {
+            font-size: 48px;
+            color: white;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
+        }
+        
+        .overlay-text {
+            font-size: 24px;
+            color: white;
+            margin-bottom: 30px;
+            text-align: center;
+            max-width: 80%;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+        }
+        
+        .overlay-button {
+            padding: 15px 40px;
+            font-size: 24px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            font-family: 'Bangers', 'Arial', sans-serif;
+            letter-spacing: 1px;
+        }
+        
+        .overlay-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            background: var(--secondary-color);
+        }
+        
+        /* Power-up notification */
+        #power-up-notification {
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 25;
+        }
+        
+        /* Mobile controls */
+        #mobile-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: none;
+            z-index: 20;
+        }
+        
+        .mobile-button {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 10px;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            #game-container {
+                height: 400px;
+            }
+            
+            #mobile-controls {
+                display: flex;
+            }
+            
+            .overlay-title {
+                font-size: 36px;
+            }
+            
+            .overlay-text {
+                font-size: 18px;
+            }
+        }
+        
+        /* Combat-specific styles */
+        .projectile {
+            position: absolute;
+            background-color: #FFF;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        .enemy {
+            position: absolute;
+            background-color: #F00;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        .explosion {
+            position: absolute;
+            pointer-events: none;
+            z-index: 15;
+        }
+        
+        /* Combat UI */
+        #combat-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            z-index: 20;
+        }
+        
+        .combat-button {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 10px;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+        }
+        
+        .combat-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Combo display */
+        #combo-display {
+            position: absolute;
+            top: 100px;
+            right: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 20;
+        }
+        
+        /* Hit indicators */
+        .hit-indicator {
+            position: absolute;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+            pointer-events: none;
+            z-index: 20;
+            animation: float-up-fade 1s ease-out forwards;
+        }
+        
+        @keyframes float-up-fade {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        
+        <!-- UI Elements -->
+        <div id="score-display" class="game-ui">0</div>
+        <div id="health-bar-container">
+            <div id="health-bar"></div>
+        </div>
+        <div id="power-bar-container">
+            <div id="power-bar"></div>
+        </div>
+        <div id="power-up-notification" class="game-ui"></div>
+        <div id="combo-display" class="game-ui">x1 COMBO!</div>
+        
+        <!-- Mobile Controls -->
+        <div id="mobile-controls">
+            <div class="mobile-button" id="mobile-left"><i class="fas fa-arrow-left"></i></div>
+            <div class="mobile-button" id="mobile-right"><i class="fas fa-arrow-right"></i></div>
+            <div class="mobile-button" id="mobile-up"><i class="fas fa-arrow-up"></i></div>
+            <div class="mobile-button" id="mobile-down"><i class="fas fa-arrow-down"></i></div>
+        </div>
+        
+        <!-- Combat Controls -->
+        <div id="combat-controls">
+            <div class="combat-button" id="throw-stone"><i class="fas fa-circle"></i></div>
+            <div class="combat-button" id="fire-missile"><i class="fas fa-rocket"></i></div>
+        </div>
+        
+        <!-- Game Overlays -->
+        <div id="start-screen" class="game-overlay active">
+            <h1 class="overlay-title">Flappy Forest Flight</h1>
+            <p class="overlay-text">Combat Enhanced Edition</p>
+            <button id="start-button" class="overlay-button">Start Game</button>
+        </div>
+        
+        <div id="game-over-screen" class="game-overlay">
+            <h1 class="overlay-title">Game Over</h1>
+            <p class="overlay-text">Score: <span id="final-score">0</span></p>
+            <p class="overlay-text">High Score: <span id="high-score">0</span></p>
+            <button id="restart-button" class="overlay-button">Play Again</button>
+        </div>
+        
+        <div id="pause-screen" class="game-overlay">
+            <h1 class="overlay-title">Game Paused</h1>
+            <button id="resume-button" class="overlay-button">Resume</button>
+        </div>
+    </div>
+
+    <script>
+        // Combat Mechanics for Flappy Forest Flight - Enhanced Edition
+        // This file contains the combat system implementation including:
+        // - Bird attacks (stone throwing, missiles)
+        // - Enemy types (bees, turtles, snakes)
+        // - Enemy attacks (S400 missiles, rockets, stones)
+        // - Health system
+        // - Combat animations and effects
+
+        // --- COMBAT CONSTANTS ---
+        const STONE_COOLDOWN = 500; // 0.5 seconds between stone throws
+        const STONE_SPEED = 8;
+        const STONE_DAMAGE = 1;
+        const STONE_SIZE = 15;
+
+        const MISSILE_DAMAGE = 3;
+        const MISSILE_SPEED = 10;
+        const MISSILE_SIZE = 20;
+
+        // Enemy constants
+        const ENEMY_SPAWN_INTERVAL = 3000; // 3 seconds between enemy spawns
+        const ENEMY_TYPES = ['bee', 'turtle', 'snake'];
+        const ENEMY_ATTACK_CHANCE = 0.01; // Chance per frame that an enemy will attack
+
+        // Health constants
+        const BIRD_MAX_HEALTH = 5;
+        const BEE_MAX_HEALTH = 2;
+        const TURTLE_MAX_HEALTH = 4;
+        const SNAKE_MAX_HEALTH = 3;
+
+        // Attack constants
+        const S400_MISSILE_SPEED = 6;
+        const S400_MISSILE_DAMAGE = 2;
+        const S400_MISSILE_SIZE = 25;
+
+        const ROCKET_SPEED = 7;
+        const ROCKET_DAMAGE = 1;
+        const ROCKET_SIZE = 20;
+
+        const ENEMY_STONE_SPEED = 5;
+        const ENEMY_STONE_DAMAGE = 1;
+        const ENEMY_STONE_SIZE = 12;
+
+        // --- COMBAT GAME OBJECTS ---
+        // Bird attack properties
+        bird.lastStoneTime = 0;
+        bird.stones = [];
+        bird.missiles = [];
+        bird.health = BIRD_MAX_HEALTH;
+        bird.isAttacking = false;
+        bird.attackCooldown = 0;
+
+        // Enemy arrays
+        let enemies = [];
+        let enemyProjectiles = [];
+
+        // --- COMBAT ASSET URLS ---
+        const COMBAT_ASSETS = {
+            // Bird projectiles
+            stone: 'https://i.ibb.co/JJvVXWl/stone.png',
+            missile: 'https://i.ibb.co/JJvjcQ/missile.png',
+            
+            // Enemies
+            bee: 'https://i.ibb.co/JJvVvRs/bee.png',
+            bee_moving_sheet: 'https://i.ibb.co/JJvVvRs/bee-sheet.png',
+            turtle: 'https://i.ibb.co/JJvVvRs/turtle.png',
+            turtle_moving_sheet: 'https://i.ibb.co/JJvVvRs/turtle-sheet.png',
+            snake: 'https://i.ibb.co/JJvVvRs/snake.png',
+            snake_moving_sheet: 'https://i.ibb.co/JJvVvRs/snake-sheet.png',
+            
+            // Enemy projectiles
+            s400_missile: 'https://i.ibb.co/JJvVvRs/s400-missile.png',
+            rocket: 'https://i.ibb.co/JJvVvRs/rocket.png',
+            enemy_stone: 'https://i.ibb.co/JJvVvRs/enemy-stone.png',
+            
+            // Effects
+            explosion: 'https://i.ibb.co/JJvVvRs/explosion.png',
+            explosion_sheet: 'https://i.ibb.co/JJvVvRs/explosion-sheet.png',
+            hit: 'https://i.ibb.co/JJvVvRs/hit.png',
+            hit_sheet: 'https://i.ibb.co/JJvVvRs/hit-sheet.png',
+            
+            // Custom bird
+            custom_bird: 'https://i.ibb.co/JJvVvRs/rocket-bird.png',
+            
+            // Custom turtle
+            custom_turtle: 'https://i.ibb.co/JJvVvRs/rocket-turtle.png',
+            
+            // Turtle variants
+            turtle_variant1: 'https://i.ibb.co/JJvVvRs/turtle-variant1.png',
+            turtle_variant2: 'https://i.ibb.co/JJvVvRs/turtle-variant2.png',
+            turtle_variant3: 'https://i.ibb.co/JJvVvRs/turtle-variant3.png',
+            turtle_variant4: 'https://i.ibb.co/JJvVvRs/turtle-variant4.png',
+            turtle_variant5: 'https://i.ibb.co/JJvVvRs/turtle-variant5.png',
+            turtle_variant6: 'https://i.ibb.co/JJvVvRs/turtle-variant6.png'
+        };
+
+        // --- COMBAT FUNCTIONS ---
+        // Initialize combat features
+        function initCombatFeatures() {
+            console.log("Initializing combat features...");
+            
+            // Initialize bird combat properties
+            bird.health = BIRD_MAX_HEALTH;
+            bird.stones = [];
+            bird.missiles = [];
+            bird.lastStoneTime = 0;
+            bird.isAttacking = false;
+            bird.attackCooldown = 0;
+            
+            // Initialize enemy arrays
+            enemies = [];
+            enemyProjectiles = [];
+            
+            // Initialize UI
+            updateHealthBar();
+            updatePowerBar();
+            
+            // Add event listeners for combat controls
+            document.getElementById('throw-stone').addEventListener('click', throwStone);
+            document.getElementById('fire-missile').addEventListener('click', fireMissile);
+            
+            // Add keyboard event listeners for combat
+            document.addEventListener('keydown', handleCombatKeyDown);
+            
+            console.log("Combat features initialized");
+        }
+
+        // Handle combat key presses
+        function handleCombatKeyDown(event) {
+            switch (event.key) {
+                case ' ':
+                    // Space bar to throw stone
+                    throwStone();
+                    break;
+                case 'f':
+                case 'F':
+                    // F key to fire missile
+                    fireMissile();
+                    break;
+            }
+        }
+
+        // Throw stone
+        function throwStone() {
+            const currentTime = Date.now();
+            
+            // Check cooldown
+            if (currentTime - bird.lastStoneTime < STONE_COOLDOWN) {
+                return;
+            }
+            
+            // Create stone
+            const stone = {
+                x: bird.x + bird.width / 2,
+                y: bird.y,
+                vx: STONE_SPEED,
+                vy: 0,
+                size: STONE_SIZE,
+                damage: STONE_DAMAGE,
+                rotation: 0
+            };
+            
+            // Add stone to array
+            bird.stones.push(stone);
+            
+            // Update last stone time
+            bird.lastStoneTime = currentTime;
+            
+            // Play sound effect
+            playSound('stone_throw');
+        }
+
+        // Fire missile
+        function fireMissile() {
+            // Check if power meter is full
+            if (powerMeter < 100) {
+                return;
+            }
+            
+            // Create missile
+            const missile = {
+                x: bird.x + bird.width / 2,
+                y: bird.y,
+                vx: MISSILE_SPEED,
+                vy: 0,
+                size: MISSILE_SIZE,
+                damage: MISSILE_DAMAGE,
+                rotation: 0
+            };
+            
+            // Add missile to array
+            bird.missiles.push(missile);
+            
+            // Reset power meter
+            powerMeter = 0;
+            updatePowerBar();
+            
+            // Play sound effect
+            playSound('missile_fire');
+        }
+
+        // Update stones
+        function updateStones(deltaTime) {
+            // Update existing stones
+            for (let i = bird.stones.length - 1; i >= 0; i--) {
+                const stone = bird.stones[i];
+                
+                // Move stone
+                stone.x += stone.vx;
+                stone.y += stone.vy;
+                
+                // Rotate stone
+                stone.rotation += 0.1;
+                
+                // Remove stone if it goes off screen
+                if (stone.x > canvas.width + stone.size) {
+                    bird.stones.splice(i, 1);
+                    continue;
+                }
+                
+                // Check for collisions with enemies
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    const enemy = enemies[j];
+                    
+                    // Check if stone hits enemy
+                    if (checkCollision(stone, enemy)) {
+                        // Damage enemy
+                        enemy.health -= stone.damage;
+                        
+                        // Create hit effect
+                        createHitEffect(stone.x, stone.y);
+                        
+                        // Show damage indicator
+                        showDamageIndicator(enemy.x, enemy.y, stone.damage);
+                        
+                        // Remove stone
+                        bird.stones.splice(i, 1);
+                        
+                        // Check if enemy is defeated
+                        if (enemy.health <= 0) {
+                            // Create explosion effect
+                            createExplosionEffect(enemy.x, enemy.y);
+                            
+                            // Remove enemy
+                            enemies.splice(j, 1);
+                            
+                            // Increase score
+                            score += 100;
+                            updateScoreDisplay();
+                            
+                            // Increase combo
+                            increaseCombo();
+                            
+                            // Play sound effect
+                            playSound('enemy_defeat');
+                        } else {
+                            // Enemy hit flash
+                            enemy.animationState.hitFlash = true;
+                            enemy.animationState.hitFlashTimer = enemy.animationState.hitFlashDuration;
+                            
+                            // Play sound effect
+                            playSound('enemy_hit');
+                        }
+                        
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Update missiles
+        function updateMissiles(deltaTime) {
+            // Update existing missiles
+            for (let i = bird.missiles.length - 1; i >= 0; i--) {
+                const missile = bird.missiles[i];
+                
+                // Move missile
+                missile.x += missile.vx;
+                missile.y += missile.vy;
+                
+                // Remove missile if it goes off screen
+                if (missile.x > canvas.width + missile.size) {
+                    bird.missiles.splice(i, 1);
+                    continue;
+                }
+                
+                // Check for collisions with enemies
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    const enemy = enemies[j];
+                    
+                    // Check if missile hits enemy
+                    if (checkCollision(missile, enemy)) {
+                        // Damage enemy
+                        enemy.health -= missile.damage;
+                        
+                        // Create explosion effect
+                        createExplosionEffect(missile.x, missile.y);
+                        
+                        // Show damage indicator
+                        showDamageIndicator(enemy.x, enemy.y, missile.damage);
+                        
+                        // Remove missile
+                        bird.missiles.splice(i, 1);
+                        
+                        // Check if enemy is defeated
+                        if (enemy.health <= 0) {
+                            // Create explosion effect
+                            createExplosionEffect(enemy.x, enemy.y);
+                            
+                            // Remove enemy
+                            enemies.splice(j, 1);
+                            
+                            // Increase score
+                            score += 200;
+                            updateScoreDisplay();
+                            
+                            // Increase combo
+                            increaseCombo();
+                            
+                            // Play sound effect
+                            playSound('enemy_defeat');
+                        } else {
+                            // Enemy hit flash
+                            enemy.animationState.hitFlash = true;
+                            enemy.animationState.hitFlashTimer = enemy.animationState.hitFlashDuration;
+                            
+                            // Play sound effect
+                            playSound('enemy_hit');
+                        }
+                        
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Create enemy
+        function createEnemy() {
+            // Select random enemy type
+            const enemyType = ENEMY_TYPES[Math.floor(Math.random() * ENEMY_TYPES.length)];
+            
+            // Create enemy based on type
+            let enemy = {
+                type: enemyType,
+                x: canvas.width + 50,
+                width: 50,
+                height: 50,
+                passed: false,
+                attackCooldown: Math.random() * 3000,
+                rotation: 0
+            };
+            
+            // Set enemy-specific properties
+            switch (enemyType) {
+                case 'bee':
+                    enemy.y = Math.random() * (canvas.height - 100) + 50;
+                    enemy.health = BEE_MAX_HEALTH;
+                    enemy.maxHealth = BEE_MAX_HEALTH;
+                    enemy.speed = 2 + Math.random() * 1;
+                    enemy.movementPattern = 'zigzag';
+                    enemy.amplitude = 30 + Math.random() * 20;
+                    enemy.frequency = 0.02 + Math.random() * 0.01;
+                    enemy.phase = Math.random() * Math.PI * 2;
+                    enemy.attackType = 'stone';
+                    break;
+                    
+                case 'turtle':
+                    // Check if we should use a turtle variant
+                    if (Math.random() < 0.7) {
+                        return createRandomTurtleEnemy();
+                    }
+                    
+                    enemy.y = canvas.height - 80;
+                    enemy.health = TURTLE_MAX_HEALTH;
+                    enemy.maxHealth = TURTLE_MAX_HEALTH;
+                    enemy.speed = 1 + Math.random() * 0.5;
+                    enemy.movementPattern = 'ground';
+                    enemy.attackType = 's400_missile';
+                    break;
+                    
+                case 'snake':
+                    enemy.y = canvas.height - 60;
+                    enemy.health = SNAKE_MAX_HEALTH;
+                    enemy.maxHealth = SNAKE_MAX_HEALTH;
+                    enemy.speed = 3 + Math.random() * 1;
+                    enemy.movementPattern = 'jump';
+                    enemy.jumpHeight = 80 + Math.random() * 40;
+                    enemy.jumpSpeed = 0.05 + Math.random() * 0.02;
+                    enemy.jumpPhase = Math.random() * Math.PI * 2;
+                    enemy.attackType = 'rocket';
+                    break;
+            }
+            
+            // Initialize animation state
+            enemy.animationState = {
+                currentFrame: 0,
+                totalFrames: enemyType === 'bee' ? 8 : 7,
+                frameTimer: 0,
+                hitFlash: false,
+                hitFlashTimer: 0,
+                hitFlashDuration: 200
+            };
+            
+            enemies.push(enemy);
+            return enemy;
+        }
+
+        // Create random turtle enemy variant
+        function createRandomTurtleEnemy() {
+            // Select a random turtle variant
+            const variantIndex = Math.floor(Math.random() * 6) + 1;
+            const variantId = 'turtle_variant' + variantIndex;
+            
+            // Create the turtle enemy with variant properties
+            let enemy = {
+                type: 'turtle',
+                variantId: variantId,
+                name: 'Rocket Turtle ' + variantIndex,
+                x: canvas.width + 50,
+                y: canvas.height - 80,
+                width: 70,
+                height: 60,
+                health: TURTLE_MAX_HEALTH + Math.floor(Math.random() * 3),
+                maxHealth: TURTLE_MAX_HEALTH + Math.floor(Math.random() * 3),
+                speed: 1 + Math.random() * 0.5,
+                movementPattern: 'ground',
+                attackType: 's400_missile',
+                passed: false,
+                attackCooldown: 2000 + Math.random() * 2000,
+                rotation: 0,
+                customImage: true
+            };
+            
+            // Initialize animation state
+            enemy.animationState = {
+                currentFrame: 0,
+                totalFrames: 4,
+                frameTimer: 0,
+                hitFlash: false,
+                hitFlashTimer: 0,
+                hitFlashDuration: 200
+            };
+            
+            enemies.push(enemy);
+            return enemy;
+        }
+
+        // Update enemies
+        function updateEnemies(deltaTime) {
+            // Spawn new enemies
+            enemySpawnTimer += deltaTime * 1000;
+            if (enemySpawnTimer >= ENEMY_SPAWN_INTERVAL) {
+                createEnemy();
+                enemySpawnTimer = 0;
+            }
+            
+            // Update existing enemies
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const enemy = enemies[i];
+                
+                // Move enemy based on movement pattern
+                switch (enemy.movementPattern) {
+                    case 'zigzag':
+                        enemy.x -= enemy.speed;
+                        enemy.phase += enemy.frequency;
+                        enemy.y = enemy.y + Math.sin(enemy.phase) * enemy.amplitude * deltaTime;
+                        break;
+                        
+                    case 'ground':
+                        enemy.x -= enemy.speed;
+                        break;
+                        
+                    case 'jump':
+                        enemy.x -= enemy.speed;
+                        enemy.jumpPhase += enemy.jumpSpeed;
+                        enemy.y = canvas.height - 60 - Math.abs(Math.sin(enemy.jumpPhase) * enemy.jumpHeight);
+                        break;
+                }
+                
+                // Update animation
+                enemy.animationState.frameTimer += deltaTime * 1000;
+                if (enemy.animationState.frameTimer >= 100) {
+                    enemy.animationState.currentFrame = (enemy.animationState.currentFrame + 1) % enemy.animationState.totalFrames;
+                    enemy.animationState.frameTimer = 0;
+                }
+                
+                // Update hit flash
+                if (enemy.animationState.hitFlash) {
+                    enemy.animationState.hitFlashTimer -= deltaTime * 1000;
+                    if (enemy.animationState.hitFlashTimer <= 0) {
+                        enemy.animationState.hitFlash = false;
+                    }
+                }
+                
+                // Check if enemy is off screen
+                if (enemy.x < -enemy.width) {
+                    enemies.splice(i, 1);
+                    continue;
+                }
+                
+                // Check if enemy should attack
+                enemy.attackCooldown -= deltaTime * 1000;
+                if (enemy.attackCooldown <= 0) {
+                    enemyAttack(enemy);
+                }
+                
+                // Check for collision with bird
+                if (checkCollision(enemy, bird) && !bird.invincible) {
+                    // Damage bird
+                    damageBird(1);
+                    
+                    // Create hit effect
+                    createHitEffect(bird.x, bird.y);
+                    
+                    // Make bird temporarily invincible
+                    makeBirdInvincible(1000);
+                    
+                    // Play sound effect
+                    playSound('bird_hit');
+                }
+            }
+        }
+
+        // Enemy attack
+        function enemyAttack(enemy) {
+            // Create projectile based on enemy type
+            let projectile = {
+                x: enemy.x,
+                y: enemy.y,
+                type: enemy.attackType
+            };
+            
+            switch (enemy.attackType) {
+                case 's400_missile':
+                    projectile.speed = S400_MISSILE_SPEED;
+                    projectile.size = S400_MISSILE_SIZE;
+                    projectile.damage = S400_MISSILE_DAMAGE;
+                    break;
+                    
+                case 'rocket':
+                    projectile.speed = ROCKET_SPEED;
+                    projectile.size = ROCKET_SIZE;
+                    projectile.damage = ROCKET_DAMAGE;
+                    break;
+                    
+                case 'stone':
+                    projectile.speed = ENEMY_STONE_SPEED;
+                    projectile.size = ENEMY_STONE_SIZE;
+                    projectile.damage = ENEMY_STONE_DAMAGE;
+                    break;
+            }
+            
+            // Calculate direction towards bird
+            const dx = bird.x - enemy.x;
+            const dy = bird.y - enemy.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            projectile.vx = (dx / distance) * projectile.speed;
+            projectile.vy = (dy / distance) * projectile.speed;
+            
+            // Add rotation for visual effect
+            projectile.rotation = Math.atan2(dy, dx);
+            
+            enemyProjectiles.push(projectile);
+            
+            // Reset attack cooldown (random between 3-6 seconds)
+            enemy.attackCooldown = 3000 + Math.random() * 3000;
+        }
+
+        // Update enemy projectiles
+        function updateEnemyProjectiles(deltaTime) {
+            // Update existing projectiles
+            for (let i = enemyProjectiles.length - 1; i >= 0; i--) {
+                const projectile = enemyProjectiles[i];
+                
+                // Move projectile
+                projectile.x += projectile.vx;
+                projectile.y += projectile.vy;
+                
+                // Remove projectile if it goes off screen
+                if (projectile.x < -projectile.size || 
+                    projectile.x > canvas.width + projectile.size || 
+                    projectile.y < -projectile.size || 
+                    projectile.y > canvas.height + projectile.size) {
+                    enemyProjectiles.splice(i, 1);
+                    continue;
+                }
+                
+                // Check for collision with bird
+                if (checkCollision(projectile, bird) && !bird.invincible) {
+                    // Damage bird
+                    damageBird(projectile.damage);
+                    
+                    // Create explosion effect
+                    createExplosionEffect(projectile.x, projectile.y);
+                    
+                    // Remove projectile
+                    enemyProjectiles.splice(i, 1);
+                    
+                    // Make bird temporarily invincible
+                    makeBirdInvincible(1000);
+                    
+                    // Play sound effect
+                    playSound('bird_hit');
+                    
+                    // Reset combo
+                    resetCombo();
+                }
+            }
+        }
+
+        // Damage bird
+        function damageBird(damage) {
+            // Reduce bird health
+            bird.health -= damage;
+            
+            // Update health bar
+            updateHealthBar();
+            
+            // Check if bird is defeated
+            if (bird.health <= 0) {
+                gameOver();
+            }
+            
+            // Make bird blink
+            bird.isBlinking = true;
+            setTimeout(() => {
+                bird.isBlinking = false;
+            }, 200);
+        }
+
+        // Make bird invincible
+        function makeBirdInvincible(duration) {
+            bird.invincible = true;
+            
+            // Reset invincibility after duration
+            setTimeout(() => {
+                bird.invincible = false;
+            }, duration);
+        }
+
+        // Update health bar
+        function updateHealthBar() {
+            const healthBar = document.getElementById('health-bar');
+            const healthPercent = (bird.health / BIRD_MAX_HEALTH) * 100;
+            healthBar.style.width = healthPercent + '%';
+            
+            // Change color based on health
+            if (healthPercent > 60) {
+                healthBar.style.background = 'linear-gradient(to right, #4CAF50, #8BC34A)';
+            } else if (healthPercent > 30) {
+                healthBar.style.background = 'linear-gradient(to right, #FF9800, #FFC107)';
+            } else {
+                healthBar.style.background = 'linear-gradient(to right, #F44336, #FF5252)';
+            }
+        }
+
+        // Update power bar
+        function updatePowerBar() {
+            const powerBar = document.getElementById('power-bar');
+            powerBar.style.width = powerMeter + '%';
+        }
+
+        // Create hit effect
+        function createHitEffect(x, y) {
+            // In a real implementation, this would create a visual hit effect
+            console.log("Hit effect at", x, y);
+        }
+
+        // Create explosion effect
+        function createExplosionEffect(x, y) {
+            // In a real implementation, this would create a visual explosion effect
+            console.log("Explosion effect at", x, y);
+        }
+
+        // Show damage indicator
+        function showDamageIndicator(x, y, damage) {
+            // Create damage indicator element
+            const indicator = document.createElement('div');
+            indicator.className = 'hit-indicator';
+            indicator.textContent = '-' + damage;
+            indicator.style.left = x + 'px';
+            indicator.style.top = y + 'px';
+            
+            // Add to game container
+            document.getElementById('game-container').appendChild(indicator);
+            
+            // Remove after animation completes
+            setTimeout(() => {
+                indicator.remove();
+            }, 1000);
+        }
+
+        // Combo system
+        let comboCount = 0;
+        let comboTimer = 0;
+        const COMBO_TIMEOUT = 3000; // 3 seconds to maintain combo
+
+        // Increase combo
+        function increaseCombo() {
+            comboCount++;
+            comboTimer = COMBO_TIMEOUT;
+            
+            // Update combo display
+            const comboDisplay = document.getElementById('combo-display');
+            comboDisplay.textContent = 'x' + comboCount + ' COMBO!';
+            comboDisplay.style.opacity = '1';
+            
+            // Apply combo bonus to score
+            score += 10 * comboCount;
+            updateScoreDisplay();
+        }
+
+        // Reset combo
+        function resetCombo() {
+            comboCount = 0;
+            comboTimer = 0;
+            
+            // Hide combo display
+            document.getElementById('combo-display').style.opacity = '0';
+        }
+
+        // Update combo timer
+        function updateCombo(deltaTime) {
+            if (comboCount > 0) {
+                comboTimer -= deltaTime * 1000;
+                
+                if (comboTimer <= 0) {
+                    resetCombo();
+                }
+            }
+        }
+
+        // Check collision between two objects
+        function checkCollision(obj1, obj2) {
+            // Simple rectangular collision detection
+            return obj1.x < obj2.x + obj2.width &&
+                   obj1.x + obj1.size > obj2.x &&
+                   obj1.y < obj2.y + obj2.height &&
+                   obj1.y + obj1.size > obj2.y;
+        }
+
+        // Get health color based on percentage
+        function getHealthColor(percent) {
+            if (percent > 0.6) {
+                return '#4CAF50'; // Green
+            } else if (percent > 0.3) {
+                return '#FF9800'; // Orange
+            } else {
+                return '#F44336'; // Red
+            }
+        }
+
+        // Play sound effect
+        function playSound(soundName) {
+            // In a real implementation, this would play the appropriate sound effect
+            console.log("Playing sound:", soundName);
+        }
+
+        // --- COMBAT ANIMATIONS ---
+        // Draw stones
+        function drawStones() {
+            for (const stone of bird.stones) {
+                ctx.save();
+                ctx.translate(stone.x, stone.y);
+                ctx.rotate(stone.rotation);
+                
+                // Draw stone
+                ctx.fillStyle = '#8B4513';
+                ctx.beginPath();
+                ctx.arc(0, 0, stone.size / 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+
+        // Draw missiles
+        function drawMissiles() {
+            for (const missile of bird.missiles) {
+                ctx.save();
+                ctx.translate(missile.x, missile.y);
+                ctx.rotate(missile.rotation);
+                
+                // Draw missile body
+                ctx.fillStyle = '#555';
+                ctx.fillRect(-missile.size / 2, -missile.size / 6, missile.size, missile.size / 3);
+                
+                // Draw missile head
+                ctx.fillStyle = '#F44336';
+                ctx.beginPath();
+                ctx.moveTo(missile.size / 2, 0);
+                ctx.lineTo(missile.size, -missile.size / 4);
+                ctx.lineTo(missile.size, missile.size / 4);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Draw missile fins
+                ctx.fillStyle = '#888';
+                ctx.beginPath();
+                ctx.moveTo(-missile.size / 2, 0);
+                ctx.lineTo(-missile.size, -missile.size / 3);
+                ctx.lineTo(-missile.size / 2, -missile.size / 6);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.moveTo(-missile.size / 2, 0);
+                ctx.lineTo(-missile.size, missile.size / 3);
+                ctx.lineTo(-missile.size / 2, missile.size / 6);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Draw missile trail
+                ctx.fillStyle = 'rgba(255, 150, 0, 0.7)';
+                ctx.beginPath();
+                ctx.moveTo(-missile.size / 2, 0);
+                ctx.lineTo(-missile.size * 1.5, -missile.size / 4);
+                ctx.lineTo(-missile.size * 2, 0);
+                ctx.lineTo(-missile.size * 1.5, missile.size / 4);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+
+        // Draw enemies
+        function drawEnemies() {
+            for (const enemy of enemies) {
+                // If it's a turtle variant, use variant drawing
+                if (enemy.type === 'turtle' && enemy.customImage && enemy.variantId) {
+                    drawTurtleVariant(enemy);
+                    continue;
+                }
+                
+                ctx.save();
+                ctx.translate(enemy.x, enemy.y);
+                ctx.rotate(enemy.rotation || 0);
+                
+                // Apply hit flash effect
+                if (enemy.animationState.hitFlash) {
+                    ctx.globalAlpha = 0.7;
+                    ctx.shadowColor = '#FF0000';
+                    ctx.shadowBlur = 20;
+                }
+                
+                // Draw enemy based on type
+                switch (enemy.type) {
+                    case 'bee':
+                        // Draw bee body
+                        ctx.fillStyle = '#FFC107';
+                        ctx.beginPath();
+                        ctx.ellipse(0, 0, enemy.width / 2, enemy.height / 3, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Draw bee stripes
+                        ctx.fillStyle = '#000';
+                        ctx.fillRect(-enemy.width / 4, -enemy.height / 4, enemy.width / 2, enemy.height / 8);
+                        ctx.fillRect(-enemy.width / 4, 0, enemy.width / 2, enemy.height / 8);
+                        
+                        // Draw bee wings
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                        ctx.beginPath();
+                        ctx.ellipse(0, -enemy.height / 3, enemy.width / 3, enemy.height / 6, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                        
+                    case 'turtle':
+                        // Draw turtle shell
+                        ctx.fillStyle = '#8B4513';
+                        ctx.beginPath();
+                        ctx.ellipse(0, 0, enemy.width / 2, enemy.height / 2, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Draw turtle head
+                        ctx.fillStyle = '#4CAF50';
+                        ctx.beginPath();
+                        ctx.ellipse(-enemy.width / 2, 0, enemy.width / 4, enemy.height / 4, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Draw turtle legs
+                        ctx.fillStyle = '#4CAF50';
+                        ctx.beginPath();
+                        ctx.ellipse(-enemy.width / 4, -enemy.height / 2, enemy.width / 8, enemy.height / 8, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.beginPath();
+                        ctx.ellipse(-enemy.width / 4, enemy.height / 2, enemy.width / 8, enemy.height / 8, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.beginPath();
+                        ctx.ellipse(enemy.width / 4, -enemy.height / 2, enemy.width / 8, enemy.height / 8, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.beginPath();
+                        ctx.ellipse(enemy.width / 4, enemy.height / 2, enemy.width / 8, enemy.height / 8, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                        
+                    case 'snake':
+                        // Draw snake body
+                        ctx.fillStyle = '#4CAF50';
+                        ctx.beginPath();
+                        ctx.ellipse(0, 0, enemy.width / 2, enemy.height / 4, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Draw snake head
+                        ctx.fillStyle = '#388E3C';
+                        ctx.beginPath();
+                        ctx.ellipse(-enemy.width / 2, 0, enemy.width / 4, enemy.height / 4, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Draw snake tongue
+                        ctx.strokeStyle = '#F44336';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(-enemy.width * 0.75, 0);
+                        ctx.lineTo(-enemy.width, -enemy.height / 8);
+                        ctx.moveTo(-enemy.width * 0.75, 0);
+                        ctx.lineTo(-enemy.width, enemy.height / 8);
+                        ctx.stroke();
+                        break;
+                }
+                
+                // Draw health bar above enemy
+                const healthBarWidth = enemy.width;
+                const healthBarHeight = 5;
+                const healthPercent = enemy.health / enemy.maxHealth;
+                
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(
+                    -healthBarWidth / 2,
+                    -enemy.height / 2 - 10,
+                    healthBarWidth,
+                    healthBarHeight
+                );
+                
+                ctx.fillStyle = getHealthColor(healthPercent);
+                ctx.fillRect(
+                    -healthBarWidth / 2,
+                    -enemy.height / 2 - 10,
+                    healthBarWidth * healthPercent,
+                    healthBarHeight
+                );
+                
+                ctx.restore();
+            }
+        }
+
+        // Draw turtle variant
+        function drawTurtleVariant(enemy) {
+            ctx.save();
+            ctx.translate(enemy.x, enemy.y);
+            
+            // Apply hit flash effect
+            if (enemy.animationState.hitFlash) {
+                ctx.globalAlpha = 0.7;
+                ctx.shadowColor = '#FF0000';
+                ctx.shadowBlur = 20;
+            }
+            
+            // Draw custom turtle (placeholder until images are loaded)
+            ctx.fillStyle = '#8B4513';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, enemy.width / 2, enemy.height / 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw missile launcher
+            ctx.fillStyle = '#555';
+            ctx.fillRect(-enemy.width / 4, -enemy.height, enemy.width / 2, enemy.height / 2);
+            
+            // Draw missiles
+            ctx.fillStyle = '#F44336';
+            ctx.fillRect(-enemy.width / 6, -enemy.height, enemy.width / 12, enemy.height / 2);
+            ctx.fillRect(0, -enemy.height, enemy.width / 12, enemy.height / 2);
+            ctx.fillRect(enemy.width / 6, -enemy.height, enemy.width / 12, enemy.height / 2);
+            
+            // Draw health bar above enemy
+            const healthBarWidth = enemy.width;
+            const healthBarHeight = 5;
+            const healthPercent = enemy.health / enemy.maxHealth;
+            
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(
+                -healthBarWidth / 2,
+                -enemy.height / 2 - 10,
+                healthBarWidth,
+                healthBarHeight
+            );
+            
+            ctx.fillStyle = getHealthColor(healthPercent);
+            ctx.fillRect(
+                -healthBarWidth / 2,
+                -enemy.height / 2 - 10,
+                healthBarWidth * healthPercent,
+                healthBarHeight
+            );
+            
+            ctx.restore();
+        }
+
+        // Draw enemy projectiles
+        function drawEnemyProjectiles() {
+            for (const projectile of enemyProjectiles) {
+                ctx.save();
+                ctx.translate(projectile.x, projectile.y);
+                ctx.rotate(projectile.rotation);
+                
+                // Draw projectile based on type
+                switch (projectile.type) {
+                    case 's400_missile':
+                        // Draw missile body
+                        ctx.fillStyle = '#555';
+                        ctx.fillRect(-projectile.size / 2, -projectile.size / 6, projectile.size, projectile.size / 3);
+                        
+                        // Draw missile head
+                        ctx.fillStyle = '#F44336';
+                        ctx.beginPath();
+                        ctx.moveTo(projectile.size / 2, 0);
+                        ctx.lineTo(projectile.size, -projectile.size / 4);
+                        ctx.lineTo(projectile.size, projectile.size / 4);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        // Draw missile fins
+                        ctx.fillStyle = '#888';
+                        ctx.beginPath();
+                        ctx.moveTo(-projectile.size / 2, 0);
+                        ctx.lineTo(-projectile.size, -projectile.size / 3);
+                        ctx.lineTo(-projectile.size / 2, -projectile.size / 6);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(-projectile.size / 2, 0);
+                        ctx.lineTo(-projectile.size, projectile.size / 3);
+                        ctx.lineTo(-projectile.size / 2, projectile.size / 6);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        // Draw missile trail
+                        ctx.fillStyle = 'rgba(255, 150, 0, 0.7)';
+                        ctx.beginPath();
+                        ctx.moveTo(-projectile.size / 2, 0);
+                        ctx.lineTo(-projectile.size * 1.5, -projectile.size / 4);
+                        ctx.lineTo(-projectile.size * 2, 0);
+                        ctx.lineTo(-projectile.size * 1.5, projectile.size / 4);
+                        ctx.closePath();
+                        ctx.fill();
+                        break;
+                        
+                    case 'rocket':
+                        // Draw rocket body
+                        ctx.fillStyle = '#795548';
+                        ctx.fillRect(-projectile.size / 2, -projectile.size / 6, projectile.size, projectile.size / 3);
+                        
+                        // Draw rocket head
+                        ctx.fillStyle = '#F44336';
+                        ctx.beginPath();
+                        ctx.moveTo(projectile.size / 2, 0);
+                        ctx.lineTo(projectile.size * 0.75, -projectile.size / 4);
+                        ctx.lineTo(projectile.size * 0.75, projectile.size / 4);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        // Draw rocket fins
+                        ctx.fillStyle = '#9E9E9E';
+                        ctx.beginPath();
+                        ctx.moveTo(-projectile.size / 2, 0);
+                        ctx.lineTo(-projectile.size * 0.75, -projectile.size / 3);
+                        ctx.lineTo(-projectile.size / 2, -projectile.size / 6);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(-projectile.size / 2, 0);
+                        ctx.lineTo(-projectile.size * 0.75, projectile.size / 3);
+                        ctx.lineTo(-projectile.size / 2, projectile.size / 6);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        // Draw rocket trail
+                        ctx.fillStyle = 'rgba(255, 150, 0, 0.7)';
+                        ctx.beginPath();
+                        ctx.moveTo(-projectile.size / 2, 0);
+                        ctx.lineTo(-projectile.size, -projectile.size / 4);
+                        ctx.lineTo(-projectile.size * 1.5, 0);
+                        ctx.lineTo(-projectile.size, projectile.size / 4);
+                        ctx.closePath();
+                        ctx.fill();
+                        break;
+                        
+                    case 'stone':
+                        // Draw stone
+                        ctx.fillStyle = '#8B4513';
+                        ctx.beginPath();
+                        ctx.arc(0, 0, projectile.size / 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                }
+                
+                ctx.restore();
+            }
+        }
+
+        // --- CUSTOM BIRD IMPLEMENTATION ---
+        // Override the default bird drawing function to use custom bird
+        function drawCustomBird(deltaTime) {
+            // Update bird animation
+            bird.flapPhase += BIRD_FLAP_SPEED * deltaTime * 60;
+            if (bird.flapPhase > Math.PI * 2) {
+                bird.flapPhase -= Math.PI * 2;
+            }
+            
+            // Draw bird trail when power-up is active
+            if (bird.isPowerUpActive || turboBoostActive) {
+                for (let i = 0; i < bird.trail.length; i++) {
+                    const t = bird.trail[i];
+                    const alpha = 0.7 * (i / bird.trail.length);
+                    const scale = 0.8 + (i / bird.trail.length) * 0.2;
+                    
+                    ctx.save();
+                    ctx.globalAlpha = alpha;
+                    ctx.translate(t.x, t.y);
+                    ctx.rotate(t.rotation);
+                    ctx.scale(scale, scale);
+                    
+                    // Draw bird body
+                    ctx.fillStyle = 'rgb(0, 150, 0)';
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, bird.width / 2, bird.height / 2, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.restore();
+                }
+            }
+            
+            // Draw the bird
+            ctx.save();
+            
+            // Apply blinking effect
+            if (bird.isBlinking) {
+                ctx.globalAlpha = 0.3;
+            } else if (bird.invincible) {
+                ctx.globalAlpha = 0.5 + Math.sin(Date.now() * 0.01) * 0.5;
+            }
+            
+            // Apply power-up glow effect
+            if (bird.isPowerUpActive) {
+                ctx.shadowColor = 'gold';
+                ctx.shadowBlur = 20;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+            } else if (doublePointsActive) {
+                ctx.shadowColor = '#FF9800';
+                ctx.shadowBlur = 15;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+            } else if (turboBoostActive) {
+                ctx.shadowColor = '#2196F3';
+                ctx.shadowBlur = 15;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+            }
+            
+            ctx.translate(bird.x, bird.y);
+            ctx.rotate(bird.rotation);
+            
+            // Apply flapping animation
+            const flapOffset = Math.sin(bird.flapPhase) * 5;
+            ctx.scale(1, 1 + flapOffset * 0.05);
+            
+            // Apply bird size based on evolution
+            let sizeMultiplier = 1;
+            if (bird.abilities && bird.abilities.includes('smallerSize')) {
+                sizeMultiplier = 0.8;
+            }
+            
+            // Draw custom rocket-powered green bird
+            // Bird body
+            ctx.fillStyle = 'rgb(0, 150, 0)';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, bird.width / 2 * sizeMultiplier, bird.height / 2 * sizeMultiplier, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Bird eye
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(bird.width / 4 * sizeMultiplier, -bird.height / 6 * sizeMultiplier, bird.width / 8 * sizeMultiplier, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Bird pupil
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.arc(bird.width / 4 * sizeMultiplier + 2, -bird.height / 6 * sizeMultiplier, bird.width / 16 * sizeMultiplier, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Bird beak
+            ctx.fillStyle = 'orange';
+            ctx.beginPath();
+            ctx.moveTo(bird.width / 2 * sizeMultiplier, 0);
+            ctx.lineTo(bird.width * 0.8 * sizeMultiplier, -bird.height / 8 * sizeMultiplier);
+            ctx.lineTo(bird.width * 0.8 * sizeMultiplier, bird.height / 8 * sizeMultiplier);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Bird wing
+            ctx.fillStyle = 'rgb(0, 120, 0)';
+            ctx.beginPath();
+            ctx.ellipse(0, -bird.height / 3 * sizeMultiplier - flapOffset, bird.width / 3 * sizeMultiplier, bird.height / 6 * sizeMultiplier, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Rocket on wing
+            ctx.fillStyle = '#555';
+            ctx.fillRect(-bird.width / 6 * sizeMultiplier, -bird.height / 2 * sizeMultiplier - flapOffset, bird.width / 12 * sizeMultiplier, bird.height / 4 * sizeMultiplier);
+            ctx.fillStyle = '#F44336';
+            ctx.beginPath();
+            ctx.moveTo(-bird.width / 6 * sizeMultiplier, -bird.height / 2 * sizeMultiplier - flapOffset - bird.height / 8 * sizeMultiplier);
+            ctx.lineTo(-bird.width / 6 * sizeMultiplier - bird.width / 12 * sizeMultiplier, -bird.height / 2 * sizeMultiplier - flapOffset - bird.height / 4 * sizeMultiplier);
+            ctx.lineTo(-bird.width / 6 * sizeMultiplier + bird.width / 12 * sizeMultiplier, -bird.height / 2 * sizeMultiplier - flapOffset - bird.height / 4 * sizeMultiplier);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Add rocket flame effect when moving or boosting
+            if (Math.abs(bird.velocityX) > 1 || Math.abs(bird.velocityY) > 1 || turboBoostActive) {
+                // Draw flame
+                const flameSize = bird.width * 0.6 * (0.8 + Math.sin(Date.now() * 0.01) * 0.2);
+                ctx.fillStyle = '#FF9800';
+                ctx.beginPath();
+                ctx.moveTo(-bird.width / 2 * sizeMultiplier, 0);
+                ctx.lineTo(-bird.width * sizeMultiplier, -flameSize / 3);
+                ctx.lineTo(-bird.width * 1.5 * sizeMultiplier, 0);
+                ctx.lineTo(-bird.width * sizeMultiplier, flameSize / 3);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Draw inner flame
+                ctx.fillStyle = '#FFEB3B';
+                ctx.beginPath();
+                ctx.moveTo(-bird.width / 2 * sizeMultiplier, 0);
+                ctx.lineTo(-bird.width * 0.8 * sizeMultiplier, -flameSize / 5);
+                ctx.lineTo(-bird.width * 1.2 * sizeMultiplier, 0);
+                ctx.lineTo(-bird.width * 0.8 * sizeMultiplier, flameSize / 5);
+                ctx.closePath();
+                ctx.fill();
+            }
+            
+            ctx.restore();
+        }
+
+        // --- INTEGRATION WITH MAIN GAME ---
+        // Override the main game loop to include combat features
+        function enhancedGameLoop(timestamp) {
+            if (!lastTimestamp) {
+                lastTimestamp = timestamp;
+            }
+            
+            // Calculate delta time
+            const deltaTime = (timestamp - lastTimestamp) / 1000;
+            lastTimestamp = timestamp;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Update game state
+            if (gameState === 'playing') {
+                // Update bird
+                updateBird(deltaTime);
+                
+                // Update combat features
+                updateStones(deltaTime);
+                updateMissiles(deltaTime);
+                updateEnemies(deltaTime);
+                updateEnemyProjectiles(deltaTime);
+                updateCombo(deltaTime);
+                
+                // Update power meter
+                powerMeter = Math.min(powerMeter + 5 * deltaTime, 100);
+                updatePowerBar();
+                
+                // Update pipes
+                updatePipes(deltaTime);
+                
+                // Update power-ups
+                updatePowerUps(deltaTime);
+                
+                // Update score
+                if (!gameOver) {
+                    updateScore(deltaTime);
+                }
+            }
+            
+            // Draw background
+            drawBackground();
+            
+            // Draw pipes
+            drawPipes();
+            
+            // Draw power-ups
+            drawPowerUps();
+            
+            // Draw combat elements
+            drawEnemyProjectiles();
+            drawEnemies();
+            drawStones();
+            drawMissiles();
+            
+            // Draw bird
+            drawCustomBird(deltaTime);
+            
+            // Request next frame
+            requestAnimationFrame(enhancedGameLoop);
+        }
+
+        // Initialize combat features when the game starts
+        document.getElementById('start-button').addEventListener('click', function() {
+            // Start the game
+            startGame();
+            
+            // Initialize combat features
+            initCombatFeatures();
+        });
+
+        // --- GAME INITIALIZATION ---
+        // Canvas and context
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game state
+        let gameState = 'menu';
+        let score = 0;
+        let highScore = 0;
+        let lastTimestamp = null;
+        let enemySpawnTimer = 0;
+        let powerMeter = 0;
+
+        // Bird object
+        const bird = {
+            x: 100,
+            y: canvas.height / 2,
+            width: 40,
+            height: 30,
+            velocityY: 0,
+            velocityX: 0,
+            gravity: 800,
+            jumpForce: -300,
+            rotation: 0,
+            flapPhase: 0,
+            trail: [],
+            invincible: false,
+            isBlinking: false,
+            isPowerUpActive: false,
+            abilities: []
+        };
+
+        // Constants
+        const BIRD_FLAP_SPEED = 10;
+        const PIPE_SPEED = 200;
+        const PIPE_SPAWN_INTERVAL = 1.5;
+        const PIPE_GAP = 150;
+
+        // Game objects
+        let pipes = [];
+        let pipeSpawnTimer = 0;
+        let powerUps = [];
+        let doublePointsActive = false;
+        let turboBoostActive = false;
+
+        // Resize canvas
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+
+        // Initialize game
+        function initGame() {
+            // Resize canvas
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Show start screen
+            document.getElementById('start-screen').classList.add('active');
+            
+            // Add event listeners
+            document.getElementById('start-button').addEventListener('click', startGame);
+            document.getElementById('restart-button').addEventListener('click', restartGame);
+            document.getElementById('resume-button').addEventListener('click', resumeGame);
+            
+            // Add keyboard event listeners
+            document.addEventListener('keydown', handleKeyDown);
+            
+            // Add touch event listeners for mobile
+            document.getElementById('mobile-up').addEventListener('touchstart', () => bird.velocityY = bird.jumpForce);
+            document.getElementById('mobile-left').addEventListener('touchstart', () => bird.velocityX = -200);
+            document.getElementById('mobile-right').addEventListener('touchstart', () => bird.velocityX = 200);
+            document.getElementById('mobile-down').addEventListener('touchstart', () => bird.velocityY = 200);
+            
+            document.getElementById('mobile-up').addEventListener('touchend', () => bird.velocityY = 0);
+            document.getElementById('mobile-left').addEventListener('touchend', () => bird.velocityX = 0);
+            document.getElementById('mobile-right').addEventListener('touchend', () => bird.velocityX = 0);
+            document.getElementById('mobile-down').addEventListener('touchend', () => bird.velocityY = 0);
+            
+            // Create background particles
+            createBackgroundParticles();
+            
+            // Start game loop
+            requestAnimationFrame(enhancedGameLoop);
+        }
+
+        // Start game
+        function startGame() {
+            // Hide start screen
+            document.getElementById('start-screen').classList.remove('active');
+            
+            // Reset game state
+            gameState = 'playing';
+            score = 0;
+            updateScoreDisplay();
+            
+            // Reset bird
+            bird.x = 100;
+            bird.y = canvas.height / 2;
+            bird.velocityY = 0;
+            bird.velocityX = 0;
+            bird.rotation = 0;
+            bird.trail = [];
+            bird.health = BIRD_MAX_HEALTH;
+            bird.invincible = false;
+            bird.isBlinking = false;
+            bird.isPowerUpActive = false;
+            
+            // Reset pipes
+            pipes = [];
+            pipeSpawnTimer = 0;
+            
+            // Reset power-ups
+            powerUps = [];
+            doublePointsActive = false;
+            turboBoostActive = false;
+            
+            // Reset combat features
+            bird.stones = [];
+            bird.missiles = [];
+            bird.lastStoneTime = 0;
+            enemies = [];
+            enemyProjectiles = [];
+            enemySpawnTimer = 0;
+            powerMeter = 0;
+            resetCombo();
+            
+            // Update UI
+            updateHealthBar();
+            updatePowerBar();
+        }
+
+        // Restart game
+        function restartGame() {
+            // Hide game over screen
+            document.getElementById('game-over-screen').classList.remove('active');
+            
+            // Start new game
+            startGame();
+        }
+
+        // Pause game
+        function pauseGame() {
+            if (gameState === 'playing') {
+                gameState = 'paused';
+                document.getElementById('pause-screen').classList.add('active');
+            }
+        }
+
+        // Resume game
+        function resumeGame() {
+            if (gameState === 'paused') {
+                gameState = 'playing';
+                document.getElementById('pause-screen').classList.remove('active');
+                lastTimestamp = null; // Reset timestamp to avoid large delta time
+            }
+        }
+
+        // Game over
+        function gameOver() {
+            gameState = 'gameover';
+            
+            // Update high score
+            if (score > highScore) {
+                highScore = score;
+            }
+            
+            // Update game over screen
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('high-score').textContent = highScore;
+            
+            // Show game over screen
+            document.getElementById('game-over-screen').classList.add('active');
+        }
+
+        // Handle key presses
+        function handleKeyDown(event) {
+            if (gameState === 'playing') {
+                switch (event.key) {
+                    case 'ArrowUp':
+                    case 'w':
+                    case 'W':
+                        bird.velocityY = bird.jumpForce;
+                        break;
+                    case 'ArrowLeft':
+                    case 'a':
+                    case 'A':
+                        bird.velocityX = -200;
+                        break;
+                    case 'ArrowRight':
+                    case 'd':
+                    case 'D':
+                        bird.velocityX = 200;
+                        break;
+                    case 'ArrowDown':
+                    case 's':
+                    case 'S':
+                        bird.velocityY = 200;
+                        break;
+                    case 'p':
+                    case 'P':
+                        pauseGame();
+                        break;
+                }
+            } else if (gameState === 'paused' && (event.key === 'p' || event.key === 'P')) {
+                resumeGame();
+            }
+        }
+
+        // Update bird
+        function updateBird(deltaTime) {
+            // Apply gravity
+            bird.velocityY += bird.gravity * deltaTime;
+            
+            // Update position
+            bird.y += bird.velocityY * deltaTime;
+            bird.x += bird.velocityX * deltaTime;
+            
+            // Keep bird within bounds
+            if (bird.y < 0) {
+                bird.y = 0;
+                bird.velocityY = 0;
+            } else if (bird.y > canvas.height - bird.height) {
+                bird.y = canvas.height - bird.height;
+                bird.velocityY = 0;
+            }
+            
+            if (bird.x < 0) {
+                bird.x = 0;
+                bird.velocityX = 0;
+            } else if (bird.x > canvas.width - bird.width) {
+                bird.x = canvas.width - bird.width;
+                bird.velocityX = 0;
+            }
+            
+            // Update rotation
+            bird.rotation = Math.atan2(bird.velocityY, Math.max(50, Math.abs(bird.velocityX))) * 0.6;
+            
+            // Update trail
+            if (bird.isPowerUpActive || turboBoostActive) {
+                bird.trail.push({
+                    x: bird.x,
+                    y: bird.y,
+                    rotation: bird.rotation
+                });
+                
+                if (bird.trail.length > 5) {
+                    bird.trail.shift();
+                }
+            }
+            
+            // Check for collisions with pipes
+            for (const pipe of pipes) {
+                if (checkBirdPipeCollision(bird, pipe) && !bird.invincible) {
+                    // Damage bird
+                    damageBird(1);
+                    
+                    // Make bird temporarily invincible
+                    makeBirdInvincible(1000);
+                    
+                    // Play sound effect
+                    playSound('bird_hit');
+                    
+                    // Reset combo
+                    resetCombo();
+                    
+                    break;
+                }
+            }
+            
+            // Check for collisions with power-ups
+            for (let i = powerUps.length - 1; i >= 0; i--) {
+                const powerUp = powerUps[i];
+                
+                if (checkBirdPowerUpCollision(bird, powerUp)) {
+                    // Apply power-up effect
+                    applyPowerUp(powerUp);
+                    
+                    // Remove power-up
+                    powerUps.splice(i, 1);
+                    
+                    // Play sound effect
+                    playSound('power_up');
+                }
+            }
+        }
+
+        // Draw bird (original function, overridden by drawCustomBird)
+        function drawBird(deltaTime) {
+            // Update bird animation
+            bird.flapPhase += BIRD_FLAP_SPEED * deltaTime * 60;
+            if (bird.flapPhase > Math.PI * 2) {
+                bird.flapPhase -= Math.PI * 2;
+            }
+            
+            // Draw bird trail when power-up is active
+            if (bird.isPowerUpActive || turboBoostActive) {
+                for (let i = 0; i < bird.trail.length; i++) {
+                    const t = bird.trail[i];
+                    const alpha = 0.7 * (i / bird.trail.length);
+                    const scale = 0.8 + (i / bird.trail.length) * 0.2;
+                    
+                    ctx.save();
+                    ctx.globalAlpha = alpha;
+                    ctx.translate(t.x, t.y);
+                    ctx.rotate(t.rotation);
+                    ctx.scale(scale, scale);
+                    
+                    // Draw bird body
+                    ctx.fillStyle = 'rgb(255, 200, 0)';
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, bird.width / 2, bird.height / 2, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.restore();
+                }
+            }
+            
+            // Draw the bird
+            ctx.save();
+            
+            // Apply blinking effect
+            if (bird.isBlinking) {
+                ctx.globalAlpha = 0.3;
+            } else if (bird.invincible) {
+                ctx.globalAlpha = 0.5 + Math.sin(Date.now() * 0.01) * 0.5;
+            }
+            
+            // Apply power-up glow effect
+            if (bird.isPowerUpActive) {
+                ctx.shadowColor = 'gold';
+                ctx.shadowBlur = 20;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+            } else if (doublePointsActive) {
+                ctx.shadowColor = '#FF9800';
+                ctx.shadowBlur = 15;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+            } else if (turboBoostActive) {
+                ctx.shadowColor = '#2196F3';
+                ctx.shadowBlur = 15;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+            }
+            
+            ctx.translate(bird.x, bird.y);
+            ctx.rotate(bird.rotation);
+            
+            // Apply flapping animation
+            const flapOffset = Math.sin(bird.flapPhase) * 5;
+            ctx.scale(1, 1 + flapOffset * 0.05);
+            
+            // Draw bird body
+            ctx.fillStyle = 'rgb(255, 200, 0)';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, bird.width / 2, bird.height / 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw bird eye
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(bird.width / 4, -bird.height / 6, bird.width / 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw bird pupil
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.arc(bird.width / 4 + 2, -bird.height / 6, bird.width / 16, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw bird beak
+            ctx.fillStyle = 'orange';
+            ctx.beginPath();
+            ctx.moveTo(bird.width / 2, 0);
+            ctx.lineTo(bird.width * 0.8, -bird.height / 8);
+            ctx.lineTo(bird.width * 0.8, bird.height / 8);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Draw bird wing
+            ctx.fillStyle = 'rgb(220, 170, 0)';
+            ctx.beginPath();
+            ctx.ellipse(0, -bird.height / 3 - flapOffset, bird.width / 3, bird.height / 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+        }
+
+        // Update pipes
+        function updatePipes(deltaTime) {
+            // Spawn new pipes
+            pipeSpawnTimer += deltaTime;
+            if (pipeSpawnTimer >= PIPE_SPAWN_INTERVAL) {
+                spawnPipe();
+                pipeSpawnTimer = 0;
+            }
+            
+            // Update existing pipes
+            for (let i = pipes.length - 1; i >= 0; i--) {
+                const pipe = pipes[i];
+                
+                // Move pipe
+                pipe.x -= PIPE_SPEED * deltaTime;
+                
+                // Remove pipe if it's off screen
+                if (pipe.x + pipe.width < 0) {
+                    pipes.splice(i, 1);
+                    continue;
+                }
+                
+                // Check if bird has passed pipe
+                if (!pipe.passed && bird.x > pipe.x + pipe.width) {
+                    pipe.passed = true;
+                    score += doublePointsActive ? 2 : 1;
+                    updateScoreDisplay();
+                    
+                    // Spawn power-up with 20% chance
+                    if (Math.random() < 0.2) {
+                        spawnPowerUp(pipe.x + pipe.width + 100, pipe.y + pipe.gapHeight / 2);
+                    }
+                }
+            }
+        }
+
+        // Spawn pipe
+        function spawnPipe() {
+            const gapHeight = PIPE_GAP;
+            const gapY = Math.random() * (canvas.height - gapHeight - 100) + 50;
+            
+            pipes.push({
+                x: canvas.width,
+                y: gapY,
+                width: 80,
+                gapHeight: gapHeight,
+                passed: false
+            });
+        }
+
+        // Draw pipes
+        function drawPipes() {
+            for (const pipe of pipes) {
+                // Draw top pipe
+                ctx.fillStyle = '#4CAF50';
+                ctx.fillRect(pipe.x, 0, pipe.width, pipe.y);
+                
+                // Draw pipe cap
+                ctx.fillStyle = '#388E3C';
+                ctx.fillRect(pipe.x - 5, pipe.y - 20, pipe.width + 10, 20);
+                
+                // Draw bottom pipe
+                ctx.fillStyle = '#4CAF50';
+                ctx.fillRect(pipe.x, pipe.y + pipe.gapHeight, pipe.width, canvas.height - (pipe.y + pipe.gapHeight));
+                
+                // Draw pipe cap
+                ctx.fillStyle = '#388E3C';
+                ctx.fillRect(pipe.x - 5, pipe.y + pipe.gapHeight, pipe.width + 10, 20);
+            }
+        }
+
+        // Spawn power-up
+        function spawnPowerUp(x, y) {
+            const type = Math.random() < 0.5 ? 'doublePoints' : 'turboBoost';
+            
+            powerUps.push({
+                x: x,
+                y: y,
+                width: 30,
+                height: 30,
+                type: type,
+                rotation: 0
+            });
+        }
+
+        // Update power-ups
+        function updatePowerUps(deltaTime) {
+            // Update existing power-ups
+            for (let i = powerUps.length - 1; i >= 0; i--) {
+                const powerUp = powerUps[i];
+                
+                // Move power-up
+                powerUp.x -= PIPE_SPEED * 0.8 * deltaTime;
+                
+                // Rotate power-up
+                powerUp.rotation += 2 * deltaTime;
+                
+                // Remove power-up if it's off screen
+                if (powerUp.x + powerUp.width < 0) {
+                    powerUps.splice(i, 1);
+                }
+            }
+            
+            // Update power-up timers
+            if (doublePointsActive) {
+                doublePointsTimer -= deltaTime;
+                if (doublePointsTimer <= 0) {
+                    doublePointsActive = false;
+                    showPowerUpNotification('Double Points Ended');
+                }
+            }
+            
+            if (turboBoostActive) {
+                turboBoostTimer -= deltaTime;
+                if (turboBoostTimer <= 0) {
+                    turboBoostActive = false;
+                    bird.gravity = 800; // Reset gravity
+                    showPowerUpNotification('Turbo Boost Ended');
+                }
+            }
+        }
+
+        // Apply power-up
+        function applyPowerUp(powerUp) {
+            switch (powerUp.type) {
+                case 'doublePoints':
+                    doublePointsActive = true;
+                    doublePointsTimer = 10; // 10 seconds
+                    showPowerUpNotification('Double Points Activated!');
+                    break;
+                    
+                case 'turboBoost':
+                    turboBoostActive = true;
+                    turboBoostTimer = 5; // 5 seconds
+                    bird.gravity = 400; // Reduce gravity
+                    showPowerUpNotification('Turbo Boost Activated!');
+                    break;
+            }
+        }
+
+        // Draw power-ups
+        function drawPowerUps() {
+            for (const powerUp of powerUps) {
+                ctx.save();
+                ctx.translate(powerUp.x + powerUp.width / 2, powerUp.y + powerUp.height / 2);
+                ctx.rotate(powerUp.rotation);
+                
+                // Draw power-up based on type
+                switch (powerUp.type) {
+                    case 'doublePoints':
+                        // Draw star
+                        ctx.fillStyle = '#FFD700';
+                        ctx.beginPath();
+                        for (let i = 0; i < 5; i++) {
+                            const angle = (i * 2 * Math.PI / 5) - Math.PI / 2;
+                            const outerRadius = powerUp.width / 2;
+                            const innerRadius = powerUp.width / 4;
+                            
+                            if (i === 0) {
+                                ctx.moveTo(Math.cos(angle) * outerRadius, Math.sin(angle) * outerRadius);
+                            } else {
+                                ctx.lineTo(Math.cos(angle) * outerRadius, Math.sin(angle) * outerRadius);
+                            }
+                            
+                            const innerAngle = angle + Math.PI / 5;
+                            ctx.lineTo(Math.cos(innerAngle) * innerRadius, Math.sin(innerAngle) * innerRadius);
+                        }
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        // Add glow effect
+                        ctx.shadowColor = '#FFD700';
+                        ctx.shadowBlur = 10;
+                        ctx.shadowOffsetX = 0;
+                        ctx.shadowOffsetY = 0;
+                        break;
+                        
+                    case 'turboBoost':
+                        // Draw lightning bolt
+                        ctx.fillStyle = '#2196F3';
+                        ctx.beginPath();
+                        ctx.moveTo(-powerUp.width / 4, -powerUp.height / 2);
+                        ctx.lineTo(powerUp.width / 6, -powerUp.height / 6);
+                        ctx.lineTo(-powerUp.width / 6, powerUp.height / 6);
+                        ctx.lineTo(powerUp.width / 4, powerUp.height / 2);
+                        ctx.lineTo(0, 0);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        // Add glow effect
+                        ctx.shadowColor = '#2196F3';
+                        ctx.shadowBlur = 10;
+                        ctx.shadowOffsetX = 0;
+                        ctx.shadowOffsetY = 0;
+                        break;
+                }
+                
+                ctx.restore();
+            }
+        }
+
+        // Show power-up notification
+        function showPowerUpNotification(message) {
+            const notification = document.getElementById('power-up-notification');
+            notification.textContent = message;
+            notification.style.opacity = '1';
+            
+            // Hide notification after 2 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+            }, 2000);
+        }
+
+        // Update score
+        function updateScore(deltaTime) {
+            // Update score display
+            updateScoreDisplay();
+        }
+
+        // Update score display
+        function updateScoreDisplay() {
+            document.getElementById('score-display').textContent = score;
+            
+            // Apply scale animation
+            document.getElementById('score-display').style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                document.getElementById('score-display').style.transform = 'scale(1)';
+            }, 100);
+        }
+
+        // Draw background
+        function drawBackground() {
+            // Draw sky gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#1E88E5');
+            gradient.addColorStop(1, '#64B5F6');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw clouds
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            for (let i = 0; i < 5; i++) {
+                const x = (Date.now() * 0.02 + i * 200) % (canvas.width + 300) - 150;
+                const y = 50 + i * 30;
+                const width = 100 + i * 20;
+                const height = 50 + i * 10;
+                
+                ctx.beginPath();
+                ctx.ellipse(x, y, width / 2, height / 2, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.ellipse(x + width * 0.4, y - height * 0.2, width / 3, height / 3, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.ellipse(x - width * 0.4, y - height * 0.1, width / 4, height / 4, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Draw ground
+            ctx.fillStyle = '#8BC34A';
+            ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
+            
+            // Draw ground details
+            ctx.fillStyle = '#689F38';
+            for (let i = 0; i < 20; i++) {
+                const x = (Date.now() * 0.1 + i * 100) % (canvas.width + 100) - 50;
+                ctx.fillRect(x, canvas.height - 50, 30, 10);
+            }
+        }
+
+        // Create background particles
+        function createBackgroundParticles() {
+            const container = document.body;
+            
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'background-particle';
+                
+                // Random size
+                const size = Math.random() * 10 + 5;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                
+                // Random position
+                const posX = Math.random() * window.innerWidth;
+                const posY = Math.random() * window.innerHeight + window.innerHeight;
+                particle.style.left = posX + 'px';
+                particle.style.top = posY + 'px';
+                
+                // Random animation duration
+                const duration = Math.random() * 10 + 10;
+                particle.style.setProperty('--duration', duration + 's');
+                
+                // Add to container
+                container.appendChild(particle);
+            }
+        }
+
+        // Check collision between bird and pipe
+        function checkBirdPipeCollision(bird, pipe) {
+            // Check if bird is within pipe's x-range
+            if (bird.x + bird.width > pipe.x && bird.x < pipe.x + pipe.width) {
+                // Check if bird is within pipe's y-range (outside the gap)
+                if (bird.y < pipe.y || bird.y + bird.height > pipe.y + pipe.gapHeight) {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
+        // Check collision between bird and power-up
+        function checkBirdPowerUpCollision(bird, powerUp) {
+            return bird.x < powerUp.x + powerUp.width &&
+                   bird.x + bird.width > powerUp.x &&
+                   bird.y < powerUp.y + powerUp.height &&
+                   bird.y + bird.height > powerUp.y;
+        }
+
+        // Initialize game when page loads
+        window.addEventListener('load', initGame);
+
+        // --- TURTLE VARIANTS ---
+        // Turtle variant properties
+        const TURTLE_VARIANTS = [
+            {
+                id: 'turtle_variant1',
+                name: 'Rocket Launcher Turtle',
+                health: TURTLE_MAX_HEALTH,
+                speed: 1.0,
+                attackType: 's400_missile',
+                attackCooldown: 3000,
+                description: 'Standard turtle with rocket launcher and handgun'
+            },
+            {
+                id: 'turtle_variant2',
+                name: 'S-400 Turtle',
+                health: TURTLE_MAX_HEALTH + 1,
+                speed: 0.8,
+                attackType: 's400_missile',
+                attackCooldown: 2500,
+                description: 'Brown turtle with S-400 missile system'
+            },
+            {
+                id: 'turtle_variant3',
+                name: 'Quad Missile Turtle',
+                health: TURTLE_MAX_HEALTH + 2,
+                speed: 0.7,
+                attackType: 's400_missile',
+                attackCooldown: 2000,
+                description: 'Green turtle with four missile rack'
+            },
+            {
+                id: 'turtle_variant4',
+                name: 'Vertical Launcher Turtle',
+                health: TURTLE_MAX_HEALTH + 1,
+                speed: 0.9,
+                attackType: 's400_missile',
+                attackCooldown: 2800,
+                description: 'Turtle with vertical missile launcher'
+            },
+            {
+                id: 'turtle_variant5',
+                name: 'S-400 Elite Turtle',
+                health: TURTLE_MAX_HEALTH + 3,
+                speed: 0.6,
+                attackType: 's400_missile',
+                attackCooldown: 1800,
+                description: 'Elite turtle with labeled S-400 system'
+            },
+            {
+                id: 'turtle_variant6',
+                name: 'S-400 Elite Turtle',
+                health: TURTLE_MAX_HEALTH + 3,
+                speed: 0.6,
+                attackType: 's400_missile',
+                attackCooldown: 1800,
+                description: 'Elite turtle with labeled S-400 system (alternate)'
+            }
+        ];
+    </script>
+</body>
+</html>
