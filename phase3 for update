@@ -245,3 +245,32 @@ class WindEffectSystem {
  * 5. Enhance background with animated clouds
  * 6. Optimize for performance
  */
+# Phase 3 Implementation Todo List
+
+## Visual & FX Enhancements
+- [x] Add explosion particle effects when enemies are hit
+- [x] Create wind trails behind the bird during movement
+- [x] Implement animated clouds in the background
+- [x] Enhance visual feedback for hits and collisions
+
+## Automatic Firing System
+- [x] Convert bird's attack system to automatic firing
+- [x] Implement timing and cooldown for automatic stone throwing
+- [x] Add automatic missile firing when power meter is full
+- [x] Balance automatic firing rate for gameplay challenge
+
+## Gameplay Refinements
+- [x] Adjust difficulty to match new automatic firing system
+- [x] Ensure enemy spawning is balanced with automatic attacks
+- [x] Optimize performance for all visual effects
+- [x] Test on mobile devices for touch controls
+ Todo List for Game Enhancement
+
+- [x] Analyze existing game code
+- [x] Clarify requirements with user
+- [ ] Implement snake enemy (hanging from trees, spitting venom)
+- [ ] Implement arrow enemy (arcing trajectories)
+- [ ] Implement fire tree enemy (burning branches, smoke effects)
+- [ ] Integrate enemy damage with bird health system
+- [ ] Test and balance gameplay
+- [ ] Deliver enhanced game file
