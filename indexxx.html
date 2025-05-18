@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Flappy Bird & Spin to Earn - Hybrid Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            touch-action: manipulation;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        @font-face {
+            font-family: 'GameFont';
+            src: url('https://fonts.googleapis.com/css2?family=Bangers&display=swap');
+        }
+        
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #FF9800;
+            --accent-color: #FFD700;
+            --dark-color: #003300;
+            --light-color: #8BC34A;
+            --danger-color: #FF5252;
+            --bird-color-1: #FF9800;
+            --bird-color-2: #F57C00;
+            --bird-color-3: #E65100;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, var(--dark-color), #001a00);
+            font-family: 'Bangers', 'Arial', sans-serif;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Animated background particles */
+        .background-particle {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+            animation: float-up var(--duration) linear infinite;
+        }
+        
+        @keyframes float-up {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        /* Header */
+        .header {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-button {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Bangers', 'Arial', sans-serif;
+            letter-spacing: 1px;
+        }
+        
+        .nav-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .nav-button.active {
+            background: var(--primary-color);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+        
+        .username {
+            font-weight: bold;
+        }
+        
+        .coins {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 5px 10px;
+            border-radius: 15px;
+            color: var(--accent-color);
+        }
+        
+        /* Main container */
+        .main-container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 80px auto 20px;
+            padding: 0 20px;
+        }
+        
+        /* Game container */
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            box-shadow: 0 8px 30px rgba(0, 50, 0, 0.8);
+            overflow: hidden;
+            background: #333;
+            border: 8px solid #5D4037;
+            border-radius: 15px;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+        
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            color: white;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        /* Forms */
+        .form {
+            display: none;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            color: white;
+            margin-bottom: 5px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            color: white;
+        }
+        
+        .form-button {
+            width: 100%;
+            padding: 10px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Bangers', 'Arial', sans-serif;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+        
+        .form-button:hover {
+            background: var(--secondary-color);
+        }
+        
+        .form-toggle {
+            text-align: center;
+            margin-top: 15px;
+            color: white;
+        }
+        
+        .form-toggle-link {
+            color: var(--accent-color);
+            cursor: pointer;
+        }
+        
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .message.error {
+            background: rgba(255, 0, 0, 0.2);
+            color: #FF5252;
+        }
+        
+        .message.success {
+            background: rgba(0, 255, 0, 0.2);
+            color: #4CAF50;
+        }
+        
+        /* Leaderboard */
+        .leaderboard-header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .leaderboard-header h2 {
+            font-size: 24px;
+            color: white;
+            margin-bottom: 10px;
+        }
+        
+        .leaderboard-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tab-button {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Bangers', 'Arial', sans-serif;
+            letter-spacing: 1px;
+        }
+        
+        .tab-button.active {
+            background: var(--primary-color);
+        }
+        
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            color: white;
+        }
+        
+        .leaderboard-table th,
+        .leaderboard-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .leaderboard-table th {
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .leaderboard-table tr.top-score {
+            background: rgba(255, 215, 0, 0.1);
+        }
+        
+        .leaderboard-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .no-scores {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            #game-container {
+                height: 400px;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px;
+            }
+            
+            .nav-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .user-info {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .main-container {
+                margin-top: 120px;
+            }
+        }
+        
+        /* Game-specific styles are in their respective CSS files */
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">Flappy Forest & Spin to Earn</div>
+        
+        <div class="nav-buttons">
+            <button id="flappy-mode-btn" class="nav-button active">Flappy Bird</button>
+            <button id="spin-mode-btn" class="nav-button">Spin to Earn</button>
+            <button id="leaderboard-btn" class="nav-button">Leaderboard</button>
+        </div>
+        
+        <div class="user-info">
+            <div id="user-display">Guest</div>
+            <button id="login-btn" class="nav-button">Login</button>
+            <button id="register-btn" class="nav-button">Register</button>
+            <button id="logout-btn" class="nav-button" style="display: none;">Logout</button>
+        </div>
+    </header>
+    
+    <!-- Main container -->
+    <div class="main-container">
+        <!-- Game container -->
+        <div id="game-container"></div>
+    </div>
+    
+    <!-- Login/Register Modal -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            
+            <!-- Login Form -->
+            <form id="login-form" class="form">
+                <h2 class="modal-title">Login</h2>
+                
+                <div class="form-group">
+                    <label for="login-username" class="form-label">Username</label>
+                    <input type="text" id="login-username" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="login-password" class="form-label">Password</label>
+                    <input type="password" id="login-password" class="form-input" required>
+                </div>
+                
+                <button type="submit" class="form-button">Login</button>
+                
+                <div class="message"></div>
+                
+                <div class="form-toggle">
+                    Don't have an account? <span class="form-toggle-link" id="show-register">Register</span>
+                </div>
+            </form>
+            
+            <!-- Register Form -->
+            <form id="register-form" class="form">
+                <h2 class="modal-title">Register</h2>
+                
+                <div class="form-group">
+                    <label for="register-username" class="form-label">Username</label>
+                    <input type="text" id="register-username" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="register-email" class="form-label">Email</label>
+                    <input type="email" id="register-email" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="register-password" class="form-label">Password</label>
+                    <input type="password" id="register-password" class="form-input" required>
+                </div>
+                
+                <button type="submit" class="form-button">Register</button>
+                
+                <div class="message"></div>
+                
+                <div class="form-toggle">
+                    Already have an account? <span class="form-toggle-link" id="show-login">Login</span>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Leaderboard Modal -->
+    <div id="leaderboard-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="leaderboard-close">&times;</span>
+            <div id="leaderboard-container"></div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="js/data/storage.js"></script>
+    <script src="js/user/auth.js"></script>
+    <script src="js/leaderboard/scores.js"></script>
+    <script src="js/flappy-bird/game.js"></script>
+    <script src="js/spin-to-earn/wheel.js"></script>
+    <script src="js/game-manager.js"></script>
+    <script src="js/main.js"></script>
+    
+    <script>
+        // Create background particles
+        function createBackgroundParticles() {
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'background-particle';
+                
+                const size = Math.random() * 10 + 5;
+                const duration = Math.random() * 20 + 10;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.setProperty('--duration', `${duration}s`);
+                
+                document.body.appendChild(particle);
+            }
+        }
+        
+        // Initialize background particles
+        createBackgroundParticles();
+        
+        // Modal functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginModal = document.getElementById('login-modal');
+            const leaderboardModal = document.getElementById('leaderboard-modal');
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const showLogin = document.getElementById('show-login');
+            const showRegister = document.getElementById('show-register');
+            const closeBtns = document.querySelectorAll('.modal-close');
+            
+            // Show login form
+            if (showLogin) {
+                showLogin.addEventListener('click', function() {
+                    loginForm.style.display = 'block';
+                    registerForm.style.display = 'none';
+                });
+            }
+            
+            // Show register form
+            if (showRegister) {
+                showRegister.addEventListener('click', function() {
+                    loginForm.style.display = 'none';
+                    registerForm.style.display = 'block';
+                });
+            }
+            
+            // Close modals
+            closeBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    loginModal.style.display = 'none';
+                    leaderboardModal.style.display = 'none';
+         
+(Content truncated due to size limit. Use line ranges to read in chunks)
