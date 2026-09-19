@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flappy Forest Flight — Menu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { min-height:100vh; background:linear-gradient(to bottom,#003300,#001a00); color:#e8ffe8; font-family:system-ui,sans-serif; }
+    a.card:hover { transform:translateY(-2px); border-color:#4ade80; }
+  </style>
+</head>
+<body class="p-6 md:p-10">
+  <main class="max-w-3xl mx-auto">
+    <header class="mb-8 text-center">
+      <h1 class="text-3xl md:text-4xl font-bold text-green-300 mb-2">Flappy Forest Flight</h1>
+      <p class="text-green-100/80">Pick a level variant. Each file is a self-contained HTML5 canvas game.</p>
+    </header>
+    <section class="mb-8">
+      <h2 class="text-xl font-semibold text-green-200 mb-3">Playable levels</h2>
+      <div class="grid gap-3">
+        <a class="card block rounded-xl border border-green-800/60 bg-black/30 px-4 py-3 transition" href="index.html">Classic — Flappy Forest Flight</a>
+        <a class="card block rounded-xl border border-green-800/60 bg-black/30 px-4 py-3 transition" href="level1.html">Level 1 — Deluxe</a>
+        <a class="card block rounded-xl border border-green-800/60 bg-black/30 px-4 py-3 transition" href="level3.html">Level 3 — Forest Flight</a>
+        <a class="card block rounded-xl border border-green-800/60 bg-black/30 px-4 py-3 transition" href="level4.html">Level 4 — BY DWHL</a>
+        <a class="card block rounded-xl border border-green-800/60 bg-black/30 px-4 py-3 transition" href="level5.html">Level 5 — BY DWHL</a>
+        <a class="card block rounded-xl border border-green-800/60 bg-black/30 px-4 py-3 transition" href="level6.html">Level 6 — Ultimate</a>
+        <a class="card block rounded-xl border border-green-800/60 bg-black/30 px-4 py-3 transition" href="level7.html">Level 7 — Ultimate</a>
+        <a class="card block rounded-xl border border-green-800/60 bg-black/30 px-4 py-3 transition" href="level8.html">Level 8 — Enhanced</a>
+        <a class="card block rounded-xl border border-green-800/60 bg-black/30 px-4 py-3 transition" href="level9.html">Level 9 — Enhanced</a>
+        <a class="card block rounded-xl border border-green-800/60 bg-black/30 px-4 py-3 transition" href="level11.html">Level 11 — Combat Enhanced</a>
+        <a class="card block rounded-xl border border-green-800/60 bg-black/30 px-4 py-3 transition" href="level12.html">Level 12 — Combat Enhanced</a>
+      </div>
+    </section>
+    <section class="mb-8">
+      <h2 class="text-xl font-semibold text-green-200 mb-3">Experimental</h2>
+      <div class="grid gap-3">
+        <a class="card block rounded-xl border border-amber-700/50 bg-black/30 px-4 py-3 transition" href="hybrid.html">Hybrid shell — Flappy + Spin-to-Earn (modular JS demo)</a>
+      </div>
+    </section>
+    <footer class="text-center text-sm text-green-100/50">Open via a local static server (see README). Controls: tap / click / space to flap.</footer>
+  </main>
+</body>
+</html>
