@@ -1,52 +1,42 @@
 # Flappy Forest Flight (`flappybirds`)
 
-Browser-based **Flappy Bird** variants (HTML5 canvas + Tailwind CDN). Multiple self-contained level files with different themes and extras (combat, store ideas, etc.), plus an experimental modular "hybrid" shell (Flappy + Spin-to-Earn).
+Browser **Flappy Bird** variants (HTML5 canvas + Tailwind CDN), plus an experimental modular hybrid shell (Flappy + Spin-to-Earn).
 
 ## Requirements
 
-- A modern browser (Chrome, Firefox, Edge, Safari)
-- Optional: **Node.js** (for `npm start`) or **Python 3** (for a simple static server)
+- Modern browser (Chrome, Firefox, Edge, Safari)
+- Optional: Node.js (`npm start`) or Python 3 (static server)
 
-No build step. Levels load CDN assets (Tailwind, Font Awesome) when online.
+No build step. CDN assets need network access.
 
 ## How to run
 
-From the repo root:
-
 ```bash
-# Option A — Node
 npm start
-# then open http://localhost:3000
+# http://localhost:3000
 
-# Option B — Python
+# or
 python3 -m http.server 8000
-# then open http://localhost:8000
+# http://localhost:8000
 ```
 
-Or open `index.html` / any `levels/*.html` directly in the browser (some browsers restrict modules/local quirks; a static server is preferred).
-
-**Hub:** [`index.html`](index.html) lists all playable levels.  
-**Classic game:** [`levels/classic.html`](levels/classic.html)  
-**Hybrid demo:** [`hybrid.html`](hybrid.html)
+Open **[menu.html](menu.html)** for the level picker, or **[index.html](index.html)** for the classic game.
 
 ### Controls
 
-- **Click / tap / Space** — flap  
-- Level-specific extras (shooting, store UI, etc.) appear only in later variants
+Click / tap / Space to flap. Later levels add extras (combat UI, etc.).
 
 ## Layout
 
 ```
 .
-├── index.html              # Level picker hub
-├── hybrid.html             # Modular Flappy + Spin-to-Earn shell
-├── package.json            # npm start → static server
-├── levels/                 # Self-contained playable HTML games
-│   ├── classic.html
-│   ├── level01.html … level09.html
-│   ├── level11.html
-│   └── level12.html
-├── js/                     # Modules used by hybrid.html
+├── menu.html                 # Level picker hub
+├── index.html                # Classic Flappy Forest Flight
+├── level1.html … level9.html # Standalone level variants
+├── level11.html, level12.html
+├── hybrid.html               # Modular Flappy + Spin-to-Earn demo
+├── package.json              # npm start → static server
+├── js/                       # Modules used by hybrid.html
 │   ├── main.js
 │   ├── game-manager.js
 │   ├── data/storage.js
@@ -54,30 +44,24 @@ Or open `index.html` / any `levels/*.html` directly in the browser (some browser
 │   ├── leaderboard/scores.js
 │   ├── flappy-bird/game.js
 │   └── spin-to-earn/wheel.js
-├── docs/
-│   └── architecture.md     # Original hybrid architecture notes
-└── archive/
-    ├── incomplete/         # Truncated / unusable drafts
-    ├── unused-modules/     # AI scaffolding not wired into any page
-    └── notes/              # Old todolist / phase design dumps
+└── docs/
+    └── architecture.md       # Original hybrid architecture notes
 ```
 
-## What changed in the cleanup
+## Cleanup summary
 
-- Flat root of mixed HTML/JS/notes → clear folders
-- Renamed levels (`level1.html` → `levels/level01.html`, original root `index.html` → `levels/classic.html`)
-- Fixed `level2.html` (it was wrapped in Markdown fences and would not run)
-- Wired hybrid scripts to the `js/` layout that `hybrid.html` already expected
-- Moved unused AI modules and scratch notes into `archive/`
-- Added README, `.gitignore`, and `package.json` serve scripts
-- Archived truncated `level10.html` (file ends mid-source; use level 11/12 for combat)
+- Added hub (`menu.html`), README, `.gitignore`, `package.json`
+- Organized hybrid modules under `js/` (paths `hybrid.html` already expected)
+- Fixed `level2.html` (was wrapped in Markdown fences and would not run in a browser)
+- Removed unused AI scaffolding, scratch notes, truncated `level10.html`, and typo `indexxx.html`
+- Moved architecture notes to `docs/`
 
 ## Notes / risks
 
-- Levels are **standalone duplicates** evolved by AI — not a shared engine. Behavior differs per file.
-- `archive/unused-modules/` includes hard-coded demo admin passwords and unfinished React/`LoginScreen.js` pointing at an old remote API — not used by the hub or levels.
-- Hybrid auth/leaderboard use **localStorage** only; Firebase file is a stub.
-- Online CDNs required for Tailwind/icons unless you vendor them later.
+- Levels are standalone AI-evolved copies, not a shared engine
+- Hybrid auth/scores use localStorage only
+- Removed modules had demo admin passwords / unfinished React login pointing at an old remote API
+- Online CDNs required for Tailwind / icons
 
 ## License
 
