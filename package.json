@@ -1,0 +1,17 @@
+{
+  "name": "flappybirds",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Flappy Forest Flight \u2014 multi-level browser Flappy Bird variants",
+  "scripts": {
+    "start": "npx --yes serve . -l 3000",
+    "serve:python": "python3 -m http.server 8000"
+  },
+  "keywords": [
+    "flappy-bird",
+    "html5",
+    "canvas",
+    "game"
+  ],
+  "license": "UNLICENSED"
+}
