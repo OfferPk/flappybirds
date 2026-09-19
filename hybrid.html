@@ -47,13 +47,14 @@
     <div id="leaderboard-container"></div>
   </div></div>
   <p style="text-align:center;opacity:.6"><a href="menu.html" style="color:#8f8">← Back to menu</a></p>
-  <script src="js/data/storage.js"></script>
-  <script src="js/user/auth.js"></script>
-  <script src="js/leaderboard/scores.js"></script>
-  <script src="js/flappy-bird/game.js"></script>
-  <script src="js/spin-to-earn/wheel.js"></script>
-  <script src="js/game-manager.js"></script>
-  <script src="js/main.js"></script>
-  <script>window.dataManager = new DataManager();</script>
+  <!-- Uses existing root modules (same files the old indexxx.html expected under js/) -->
+  <script src="storage.js"></script>
+  <script src="auth.js"></script>
+  <script src="scores.js"></script>
+  <script src="game.js"></script>
+  <script src="wheel.js"></script>
+  <script src="game-manager.js"></script>
+  <script src="main.js"></script>
+  <script>window.dataManager = window.dataManager || new DataManager();</script>
 </body>
 </html>
